@@ -29,13 +29,13 @@ Source files for the Atari code (MagiC kernel and applications) are also availab
 * Emulates MC68020 processor
 * Arbitrary screen sizes and colour depths
 * Zoom, helpful for original 640x400 or 640x200 resolution
-* Full access to macoOS file system, up to root
+* Full access to macOS file system, up to root
 * German, French and English localisation for emulator
 * German, French and English localisation for emulated system
 
 # Bugs and Agenda
 
-* Musashi emulator sources must be synchronised with latest version (see below).
+* Musashi emulator sources should be synchronised with latest version (see below).
 * MAGIC_C folder must be automatically created.
 * Application should be created with latest XCode.
 * tell me
