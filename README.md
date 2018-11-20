@@ -60,5 +60,4 @@ Copyright: paultaylor@jthink.net
 License: http://www.gzip.org/zlib/zlib_license.html
 
 **Atari VDI Drivers**
-Copyright: Wilfried und Sven Behne
-License: mit freundlicher Genehmigung
+Copyright: Wilfried und Sven Behne, License: mit freundlicher Genehmigung
