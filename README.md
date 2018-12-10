@@ -15,7 +15,7 @@ Contrary to its predecessor it does not contain the highly optimized Asgard68k e
 
 The application has been developed until end of 2014. First tests showed that it seems to run under macOS 10.13 "High Sierra", but one has to **manually create a directory MAGIC_C**, preferably in the Documents folder, then start AtariX, **select the newly created directory** as root drive (will appear as "C:" in emulation), initialise the drive and then start the emulator.
 
-Source files for the Atari code (MagiC kernel and applications) are also available in their respective repository, see bewlow.
+Source files for the Atari code (MagiC kernel and applications) are also available in their respective repository, see below.
 
 # Screenshots
 <img alt="No" src="assets/Atari-Desktop.png" width="1024">
@@ -36,9 +36,9 @@ Source files for the Atari code (MagiC kernel and applications) are also availab
 # Bugs and Agenda
 
 * Musashi emulator sources should be synchronised with latest version (see below).
-* MAGIC_C folder must be automatically created.
+* MAGIC_C folder should be automatically created.
 * Application should be created with latest XCode.
-* tell me
+* Tell me.
 
 # License
 
