@@ -46,12 +46,12 @@ The AtariX emulator is licensed according to GPLv3, see LICENSE file.
 
 # External Licenses
 
-**Atari Sources**
+**Atari Sources**  
 see: https://gitlab.com/AndreasK/Atari-Mac-MagiC-Sources
 
-**Musashi 68k emulator in C**
-Copyright 1998-2002 Karl Stenerud
-Source: https://github.com/kstenerud/Musashi
+**Musashi 68k emulator in C**  
+Copyright 1998-2002 Karl Stenerud  
+Source: https://github.com/kstenerud/Musashi  
 License: https://github.com/kstenerud/Musashi/readme.txt
 
 **SDL library:**  
@@ -59,5 +59,5 @@ Source: https://www.libsdl.org
 Copyright: paultaylor@jthink.net  
 License: http://www.gzip.org/zlib/zlib_license.html
 
-**Atari VDI Drivers**
+**Atari VDI Drivers**  
 Copyright: Wilfried und Sven Behne, License: mit freundlicher Genehmigung
