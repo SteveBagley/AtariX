@@ -992,13 +992,14 @@ OSErr CXCmd::OnCommandFindSymbol
 * Callback des Emulators: XCmd-Kommando
 *
 **********************************************************************/
-
+#endif
 INT32 CXCmd::Command(UINT32 params, unsigned char *AdrOffset68k)
 {
 	strXCMD *pCmd = (strXCMD *) (params + AdrOffset68k);
 	INT32 ret;
 	OSErr err;
 
+#if 0
 
 	DebugInfo("CXCmd::Command(%d)", pCmd->m_cmd);
 
@@ -1066,6 +1067,6 @@ INT32 CXCmd::Command(UINT32 params, unsigned char *AdrOffset68k)
 	pCmd->m_MacError = err;
 	if	(err)
 		ret = ERROR;
+#endif
 	return(ret);
 }
-#endif

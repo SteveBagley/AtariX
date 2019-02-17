@@ -642,10 +642,14 @@ struct CMagiC_CPPCCallback_INT
     CMagiC *m_thisptr;
 };
 
+typedef UINT32 (*ThunkedCallbackType)(void *self, UINT32 params, unsigned char *AdrOffset68k);
+
+
+
 struct CMagiC_CPPCCallback
 {
-    struct CMagiC_CPPCCallback_INT *internal;
-    void *dummy;
+    ThunkedCallbackType *tc;
+    void *self;
 };
 
 class CMacXFS;
@@ -676,10 +680,11 @@ struct CXCmd_CPPCCallback_INT
 	CXCmd *m_thisptr;
 };
 
+
 struct CXCmd_CPPCCallback
 {
-    struct CXCmd_CPPCCallback_INT *internal;
-    void *dummy;
+    ThunkedCallbackType *tc;
+    void *self;
 };
 
 typedef UINT32 (*PPCCallback)(UINT32 params, unsigned char *AdrOffset68k);

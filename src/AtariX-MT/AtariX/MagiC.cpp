@@ -942,7 +942,7 @@ OSErr CMagiC::LoadReloc
 	BasePage *bp;
 	unsigned char *relp;
 	unsigned char relb;
-	unsigned long *tp;
+	uint32_t *tp;
 	unsigned char *tpaStart, *relBuf = NULL, *reloff, *tbase, *bbase;
 	unsigned long loff, tpaSize;
 	long Fpos;
@@ -1110,7 +1110,7 @@ Reinstall the application.
 			}
 
 			// 1. Longword relozieren
-			tp = (unsigned long *) (reloff + loff);
+			tp = (uint32_t *) (reloff + loff);
 
 			//*tp += (long) (reloff - m_RAM68k);
 			*tp = CFSwapInt32HostToBig((long) (reloff - m_RAM68k) + CFSwapInt32BigToHost(*tp));
@@ -1128,10 +1128,10 @@ Reinstall the application.
 			{
 				relb = *relp++;
 				if	(relb == 1)
-					tp = (unsigned long *) ((char *) tp + 254);
+					tp = (uint32_t *) ((char *) tp + 254);
 				else
 				{
-					tp = (unsigned long*) ((char *) tp + (unsigned char) relb);
+					tp = (uint32_t*) ((char *) tp + (unsigned char) relb);
 
 					//*tp += (long) (reloff - m_RAM68k);
 					*tp = CFSwapInt32HostToBig((long) (reloff - m_RAM68k) + CFSwapInt32BigToHost(*tp));
@@ -1284,6 +1284,21 @@ void CMagiC::DumpAtariMem(const char *filename)
 *
 **********************************************************************/
 
+template<class T, UINT32 (T::*callback)(UINT32 params, unsigned char *AdrOffset68k)>
+UINT32 ThunkedCallback(void *s, UINT32 params, unsigned char *AdrOffset68k)
+{
+    T *self = (T*)s;
+
+    return (self->*callback)(params, AdrOffset68k);
+}
+template<class T, INT32 (T::*callback)(UINT32 params, unsigned char *AdrOffset68k)>
+UINT32 ThunkedCallbackS(void *s, UINT32 params, unsigned char *AdrOffset68k)
+{
+    T *self = (T*)s;
+
+    return (self->*callback)(params, AdrOffset68k);
+}
+
 int CMagiC::Init(CMagiCScreen *pMagiCScreen, CXCmd *pXCmd)
 {
 	OSErr err;
@@ -1425,32 +1440,25 @@ Reinstall the application.
 	pMacXSysHdr->MacSys_verMac = CFSwapInt32HostToBig(10);
 	pMacXSysHdr->MacSys_cpu = CFSwapInt16HostToBig(20);		// 68020
 	pMacXSysHdr->MacSys_fpu = CFSwapInt16HostToBig(0);		// keine FPU
-    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariInit;
-    g_callbackThunk[m_thunkIndex].m_thisptr = this;
-	pMacXSysHdr->MacSys_init.internal = &g_callbackThunk[m_thunkIndex];
-    m_thunkIndex++;
+    assert(sizeof(CMagiC_CPPCCallback) == 16);
 
-    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariBIOSInit;
-    g_callbackThunk[m_thunkIndex].m_thisptr = this;
-    pMacXSysHdr->MacSys_biosinit.internal = &g_callbackThunk[m_thunkIndex];
-    m_thunkIndex++;
-
-    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariVdiInit;
-    g_callbackThunk[m_thunkIndex].m_thisptr = this;
-    pMacXSysHdr->MacSys_VdiInit.internal = &g_callbackThunk[m_thunkIndex];
-    m_thunkIndex++;
-
-    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariExec68k;
-    g_callbackThunk[m_thunkIndex].m_thisptr = this;
-    pMacXSysHdr->MacSys_Exec68k.internal = &g_callbackThunk[m_thunkIndex];
-    m_thunkIndex++;
+    pMacXSysHdr->MacSys_init.tc = (ThunkedCallbackType*)&ThunkedCallback<CMagiC,&CMagiC::AtariInit>;
+    pMacXSysHdr->MacSys_init.self = this;
+    pMacXSysHdr->MacSys_biosinit.tc = (ThunkedCallbackType*)&ThunkedCallback<CMagiC,&CMagiC::AtariBIOSInit>;
+    pMacXSysHdr->MacSys_biosinit.self = this;
+    pMacXSysHdr->MacSys_VdiInit.tc = (ThunkedCallbackType*)&ThunkedCallback<CMagiC,&CMagiC::AtariVdiInit>;
+    pMacXSysHdr->MacSys_VdiInit.self = this;
+    pMacXSysHdr->MacSys_Exec68k.tc = (ThunkedCallbackType*)&ThunkedCallback<CMagiC,&CMagiC::AtariExec68k>;
+    pMacXSysHdr->MacSys_Exec68k.self = this;
 
 	pMacXSysHdr->MacSys_pixmap = CFSwapInt32HostToBig(((size_t) &pAtari68kData->m_PixMap) - (size_t) m_RAM68k);
 	pMacXSysHdr->MacSys_pMMXCookie = CFSwapInt32HostToBig(((size_t) &pAtari68kData->m_CookieData) - (size_t) m_RAM68k);
-#if 0
-	pMacXSysHdr->MacSys_Xcmd.m_Callback = &CXCmd::Command;
-	pMacXSysHdr->MacSys_Xcmd.m_thisptr = pXCmd;
-#endif
+
+
+    pMacXSysHdr->MacSys_Xcmd.tc = (ThunkedCallbackType*)&ThunkedCallbackS<CXCmd, &CXCmd::Command>;
+//    pMacXSysHdr->MacSys_Xcmd.tc = &CXCmd::Command;
+	pMacXSysHdr->MacSys_Xcmd.self = pXCmd;
+
 	pMacXSysHdr->MacSys_PPCAddr =  CFSwapInt32HostToBig((size_t) m_RAM68k);
 	pMacXSysHdr->MacSys_VideoAddr =  CFSwapInt32HostToBig((size_t) m_pMagiCScreen->m_PixMap.baseAddr);
 #define SetThunk(p,a,b) { g_thunks[AtariThunkIndex(a)] = (void*)b; p->a = AtariThunkIndex(a); }
@@ -1484,9 +1492,10 @@ Reinstall the application.
     
     g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariGetKeyboardOrMouseData;
     g_callbackThunk[m_thunkIndex].m_thisptr = this;
+#if 0
     pMacXSysHdr->MacSys_GetKeybOrMouse.internal = &g_callbackThunk[m_thunkIndex];
     m_thunkIndex++;
-    
+#endif
 	SetThunk(pMacXSysHdr,MacSys_dos_macfn,AtariDOSFn);
 #if 0
 #if 0
@@ -1506,11 +1515,12 @@ Reinstall the application.
 #endif
     pMacXSysHdr->MacSys_rawdrvr.m_thisptr = &m_MacXFS;
 #endif
-    
+#if 0
     g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::MmxDaemon;
     g_callbackThunk[m_thunkIndex].m_thisptr = this;
     pMacXSysHdr->MacSys_Daemon.internal = &g_callbackThunk[m_thunkIndex];
     m_thunkIndex++;
+#endif
     
 
 	SetThunk(pMacXSysHdr, MacSys_Yield, AtariYield);
@@ -1599,7 +1609,12 @@ Reinstall the application.
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_init();
 
-	// Emulator starten
+    /* SRB Dump RAM */
+    FILE *fp = fopen("/Users/steve/Desktop/Magic.RAM", "wb");
+    fwrite(m_RAM68k, 1, 16*1024*1024, fp);
+    fclose(fp);
+
+    // Emulator starten
 
 	OpcodeROM = m_RAM68k;	// ROM == RAM
 	m68k_set_int_ack_callback(IRQCallback);

@@ -1157,6 +1157,7 @@ void m68k_execute(void)
 
 		/* Record previous program counter */
 		REG_PPC = REG_PC;
+        fprintf(stderr, "PC = %08x\n", REG_PC);
 
 		/* Read an instruction and call its handler */
 		REG_IR = m68ki_read_imm_16();
@@ -1243,7 +1244,7 @@ void m68k_op_call_emu_cproc(void)
 {
 	unsigned a0, a1;
 	unsigned char *p, *q;
-	unsigned self;
+	void **self;
 	typedef unsigned tfHostCallCpp(unsigned self, unsigned a1, unsigned char *emubase);
 	tfHostCallCpp *proc;
 
@@ -1254,11 +1255,11 @@ void m68k_op_call_emu_cproc(void)
 	// geht nicht:
 	proc = *((tfHostCallCpp *)(p));
 	a0 = *((unsigned  *) (p + 0));
-    p = a0 * g_ctStride + g_callbackThunk;
-    q = p + 8;
+ //   p = a0 * g_ctStride + g_callbackThunk;
+ //   q = p + 8;
     
-    proc = (tfHostCallCpp *) *((tfHostCallCpp **)q);
-	self = *((unsigned *) (p));
+    proc = (tfHostCallCpp *) *((tfHostCallCpp **)p);
+	self = *((void **)(p+8));
 	// call host function. Put return value into d0 (all in host endian-mode)
 	m68ki_cpu.dar[0] = proc(self, a1, sBaseAddr);
 }

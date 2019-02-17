@@ -71,8 +71,9 @@ class CXCmd
 			CFPlugInRef *pRef,
 			MagicMacXPluginInterfaceStruct **ppInterface);
 	// die zentrale Kommandofunktion
+#endif
 	INT32 Command(UINT32 params, unsigned char *AdrOffset68k);
-
+#if 0
    private:
 #if TARGET_RT_MAC_MACHO
 	struct tsLoadedPlugin
