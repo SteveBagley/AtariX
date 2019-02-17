@@ -20,7 +20,7 @@
  * MacXFS.h
  * ========
  *
- * Enthält die Definition der Übergabestrukturen vom MacOS
+ * Enth√§lt die Definition der √úbergabestrukturen vom MacOS
  * an das Mac-XFS von MagiCMacX
  *
  */
@@ -42,7 +42,6 @@
 #ifndef ELINK
 #define ELINK -300
 #endif
-
 
 class CMacXFS
 {
@@ -73,6 +72,7 @@ class CMacXFS
 	CMacXFS();
 	~CMacXFS();
 	void Set68kAdressRange(UInt32 AtariMemSize);
+#if 0
 	INT32 XFSFunctions( UINT32 params, unsigned char *AdrOffset68k );
 	INT32 XFSDevFunctions( UINT32 params, unsigned char *AdrOffset68k );
 	INT32 Drv2DevCode( UINT32 params, unsigned char *AdrOffset68k );
@@ -88,11 +88,12 @@ class CMacXFS
 			short drv,
 			bool longnames,
 			bool reverseDirOrder);
-
+#endif
    private:
 
 	UInt32 m_AtariMemSize;
-	typedef void PD;
+#if 0
+    typedef void PD;
 
 #pragma options align=packed
 
@@ -221,14 +222,16 @@ typedef struct _mx_fd {
 * Fuer jedes Laufwerk gibt es einen FSSpec, der
 * das MAC-Verzeichnis repraesentiert, das fuer
 * "x:\" steht.
-* Ungültige FSSpec haben die Volume-Id 0.
+* Ung√ºltige FSSpec haben die Volume-Id 0.
 */
 	FSSpec drv_fsspec[NDRVS];		// => macSys, damit MagiC die volume-ID
 							// ermitteln kann.
 
 	FSRef xfs_path[NDRVS];		// nur auswerten, wenn drv_valid = true
-	bool drv_valid[NDRVS];			// zeigt an, ob alias gültig ist.
+	bool drv_valid[NDRVS];			// zeigt an, ob alias g√ºltig ist.
+#if 0
 	CInfoPBRec	drv_pbrec[NDRVS];
+#endif
 	long drv_dirID[NDRVS];
 	bool drv_longnames[NDRVS];			// initialisiert auf 0en
 	bool drv_rvsDirOrder[NDRVS];
@@ -293,7 +296,7 @@ typedef struct _mx_fd {
 					char *buf, UINT16 bufsiz);
 	INT32 xfs_dcntl(UINT16 drv, MXFSDD *dd, char *name, UINT16 cmd, void *pArg, unsigned char *AdrOffset68k);
 
-	// Gerätetreiber
+	// Ger√§tetreiber
 
 	INT32 dev_close( MAC_FD *f );
 	INT32 dev_read( MAC_FD *f, INT32 count, char *buf );
@@ -335,6 +338,7 @@ typedef struct _mx_fd {
 
 	void setDrivebits (long newbits, unsigned char *AdrOffset68k);
 //	short Num0DrvOfDrvr (short dRefNum, short drvNum);
+#endif
 };
 
 #endif

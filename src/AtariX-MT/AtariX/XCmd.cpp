@@ -18,15 +18,15 @@
 
 /*
 *
-* Enthält die Verwaltung der nachladbaren Module
+* Enth√§lt die Verwaltung der nachladbaren Module
 *
 */
 
 // System-Header
-#include <Carbon/Carbon.h>
+//#include <Carbon/Carbon.h>
 #include <machine/endian.h>
-#include <StdLib.h>
-#include <String.h>
+#include <stdlib.h>
+#include <string.h>
 // Programm-Header
 #include "Debug.h"
 #include "Globals.h"
@@ -42,11 +42,12 @@ extern "C" {
 }
 // Schalter
 
+#if 0
 #if TARGET_RT_MAC_MACHO
 // Tabelle der geladenen Plugins
 CXCmd::tsLoadedPlugin CXCmd::s_Plugins[MAX_PLUGINS];
 #endif
-
+#endif
 
 /**********************************************************************
 *
@@ -56,6 +57,7 @@ CXCmd::tsLoadedPlugin CXCmd::s_Plugins[MAX_PLUGINS];
 
 CXCmd::CXCmd()
 {
+#if 0
 	m_XCMDFolderSpec.vRefNum = 0;
 	m_XCMDFolderSpec.parID = 0;
 
@@ -74,6 +76,7 @@ CXCmd::CXCmd()
 	m_XCmdPlugInInfo.xcmd_Length = sizeof(m_XCmdPlugInInfo);
 	m_XCmdPlugInInfo.xcmd_Version = 0;
 	m_XCmdPlugInInfo.xcmd_Callback = Callback;
+#endif
 }
 
 
@@ -99,8 +102,11 @@ int CXCmd::Init(void)
 {
 	OSErr err;
 	Boolean isDir;
+    
+    err = noErr;
 
-	err = FSMakeFSSpec(
+#if 0
+    err = FSMakeFSSpec(
 			CGlobals::s_ProcDir.vRefNum,
 			CGlobals::s_ProcDirID,
 			"\pPreload-XCMDs",
@@ -129,10 +135,11 @@ int CXCmd::Init(void)
 	if (m_XCMDFolderSpec.parID)
 		err = Preload();
 
+#endif
 	return(err);
 }
 
-
+#if 0
 /**********************************************************************
 *
 * (INTERN) Alle XCmds im Verzeichnis laden
@@ -166,7 +173,7 @@ OSErr CXCmd::Preload(void)
 			break;
 
 		if	((myCPB.hFileInfo.ioFlAttrib & ioDirMask) || (myCPB.hFileInfo.ioFlFndrInfo.fdFlags & fInvisible))
-			continue;	// Verzeichnisse und unsichtbare Dateien überspringen
+			continue;	// Verzeichnisse und unsichtbare Dateien √ºberspringen
 
 		// Datei gefunden. FSSpec erstellen
 		err2 = FSMakeFSSpec (myCPB.hFileInfo.ioVRefNum, myCPB.hFileInfo.ioFlParID, fName, &spec);
@@ -175,8 +182,8 @@ OSErr CXCmd::Preload(void)
 		if	(err2)
 		{
 			P2C(fName);
-			DebugWarning("CXCmd::Preload() -- Fehler beim Öffnen von %s", fName+1);
-			continue;	// überspringen
+			DebugWarning("CXCmd::Preload() -- Fehler beim √ñffnen von %s", fName+1);
+			continue;	// √ºberspringen
 		}
 
 		(void) Load(&spec, &ConnectionId);
@@ -188,7 +195,7 @@ OSErr CXCmd::Preload(void)
 
 /**********************************************************************
 *
-* (STATISCH) Callback für XCmd
+* (STATISCH) Callback f√ºr XCmd
 *
 * Hiermit kann ein XCMD Funktionen von MagicMacX aufrufen.
 *
@@ -257,7 +264,7 @@ void CXCmd::InitXCMD(CFragConnectionID ConnectionId)
 
 /**********************************************************************
 *
-* XCmd über FSSpec laden
+* XCmd √ºber FSSpec laden
 *
 **********************************************************************/
 
@@ -272,7 +279,7 @@ OSErr CXCmd::Load(FSSpec *pSpec, CFragConnectionID* pConnectionId)
 
 	DebugInfo(" CXCmd::Load(FSSpec *) -- Lade XCMD mit dem Dateinamen \"%#s\"", pSpec->name);
 
-	// Dateilänge ermitteln
+	// Dateil√§nge ermitteln
 
 	pb.hFileInfo.ioVRefNum = pSpec -> vRefNum;
 	pb.hFileInfo.ioNamePtr = pSpec -> name;
@@ -308,7 +315,7 @@ OSErr CXCmd::Load(FSSpec *pSpec, CFragConnectionID* pConnectionId)
 
 /**********************************************************************
 *
-* XCmd über GetSharedLibrary laden
+* XCmd √ºber GetSharedLibrary laden
 *
 **********************************************************************/
 
@@ -327,7 +334,7 @@ OSErr CXCmd::Load(ConstStr63Param libName, CFragConnectionID* pConnectionId)
 	FSSpec Spec;
 	unsigned char buf[256];
 	pstrcpy(buf, libName);			// kopiere Pascal-String
-	P2C(buf);					// mit '\0' abschließen
+	P2C(buf);					// mit '\0' abschlie√üen
 	char *s = (char *) (buf+1);
 	bool bExt;
 	char *t;
@@ -502,7 +509,7 @@ OSErr CXCmd::LoadPlugin
 			{
 				DebugInfo("CXCmd::LoadPlugin() -- MagicMacX interface found.\n");
 
-				*ppInterface = interfaceTable[0];		// wir nehmen das erste Interface, das paßt
+				*ppInterface = interfaceTable[0];		// wir nehmen das erste Interface, das pa√üt
 				err = (*ppInterface)->PluginInit(*ppInterface, &m_XCmdPlugInInfo);
 				if (err)
 				{
@@ -515,7 +522,7 @@ OSErr CXCmd::LoadPlugin
 				// Now we are done with our interface
 
 				// Done with our interface.
-				// This causes the plug-in’s code to be unloaded.
+				// This causes the plug-in‚Äôs code to be unloaded.
 
 				//(*ppInterface)->Release(*ppInterface);
 			}
@@ -552,7 +559,7 @@ OSErr CXCmd::LoadPlugin
 
 /**********************************************************************
 *
-* Erzeuge neuen Glue-Code für ein Symbol
+* Erzeuge neuen Glue-Code f√ºr ein Symbol
 *
 **********************************************************************/
 
@@ -571,7 +578,7 @@ void *CXCmd::NewGlue
 	else
 	if	(symclass ==  kTVectorCFragSymbol /*kCodeCFragSymbol ???*/)
 	{
-		// neuen Eintrag für verkettete Liste erzeugen
+		// neuen Eintrag f√ºr verkettete Liste erzeugen
 		pGlueCode = (GlueCode *) NewPtr(sizeof(GlueCode));
 		if	(!pGlueCode)
 		{
@@ -580,7 +587,7 @@ void *CXCmd::NewGlue
 		}
 //		pGlueCode->id = id;
 		pGlueCode->p = MachOFunctionPointerForCFMFunctionPointer(pCFragPtr);
-		// einhängen
+		// einh√§ngen
 		pGlueCode->pNext = NULL;
 		s_Plugins[XCmdDescriptor].pGlueList = pGlueCode;
 		return(pGlueCode->p);
@@ -690,13 +697,13 @@ OSErr CXCmd::OnCommandLoadLibrary
 	if	(bIsPath)
 	{
 		//
-		// Wird der Pfad angegeben, unterstützen wir nur CFM/PEF
+		// Wird der Pfad angegeben, unterst√ºtzen wir nur CFM/PEF
 		//
 
 		c2pstrcpy(str, szLibName);
 		err = FSMakeFSSpec(
-				CGlobals::s_ProcDir.vRefNum,	// wird ignoriert, wenn Pfad vollständig
-				CGlobals::s_ProcDirID,		// wird ignoriert, wenn Pfad vollständig
+				CGlobals::s_ProcDir.vRefNum,	// wird ignoriert, wenn Pfad vollst√§ndig
+				CGlobals::s_ProcDirID,		// wird ignoriert, wenn Pfad vollst√§ndig
 				str,
 				&Spec);
 		if	(!err)
@@ -894,7 +901,7 @@ OSErr CXCmd::OnCommandFindSymbol
 #endif
 	if	(XCmdDescriptor > MAX_PLUGINS)
 	{
-		DebugError("CXCmd::OnCommandFindSymbol()-- ungültiger Deskriptor", SymIndex);
+		DebugError("CXCmd::OnCommandFindSymbol()-- ung√ºltiger Deskriptor", SymIndex);
 		return(fnfErr);
 	}
 	type = s_Plugins[XCmdDescriptor].RunTimeFormat;
@@ -1061,3 +1068,4 @@ INT32 CXCmd::Command(UINT32 params, unsigned char *AdrOffset68k)
 		ret = ERROR;
 	return(ret);
 }
+#endif

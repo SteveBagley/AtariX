@@ -104,6 +104,13 @@ static UInt32 p68k_ScreenDriver = 0;
 #include "VDI_PPC.c.h"
 #endif
 
+extern "C"
+{
+    /* SRB Hack */
+     void *g_thunks[numThunkINDX];
+    CMagiC_CPPCCallback_INT g_callbackThunk[32];
+	int g_ctStride = sizeof(CMagiC_CPPCCallback_INT);
+}
 
 /**********************************************************************
  *
@@ -1040,20 +1047,20 @@ Reinstall the application.
 	// Alle 68k-Adressen sind relativ zu <m_RAM68k>
 	bp = (BasePage *) tpaStart;
 	memset(bp, 0, sizeof(BasePage));
-	bp->p_lowtpa = (void *) CFSwapInt32HostToBig(tpaStart - m_RAM68k);
-	bp->p_hitpa = (void *) CFSwapInt32HostToBig(tpaStart - m_RAM68k + tpaSize);
-	bp->p_tbase = (void *) CFSwapInt32HostToBig(tbase - m_RAM68k);
+	bp->p_lowtpa =  CFSwapInt32HostToBig(tpaStart - m_RAM68k);
+	bp->p_hitpa =  CFSwapInt32HostToBig(tpaStart - m_RAM68k + tpaSize);
+	bp->p_tbase = CFSwapInt32HostToBig(tbase - m_RAM68k);
 	bp->p_tlen  = exehead.tlen;
-	bp->p_dbase = (void *) CFSwapInt32HostToBig(tbase - m_RAM68k + CFSwapInt32BigToHost(exehead.tlen));
+	bp->p_dbase = CFSwapInt32HostToBig(tbase - m_RAM68k + CFSwapInt32BigToHost(exehead.tlen));
 	bp->p_dlen  = exehead.dlen;
-	bp->p_bbase = (void *) CFSwapInt32HostToBig(bbase - m_RAM68k);
+	bp->p_bbase = CFSwapInt32HostToBig(bbase - m_RAM68k);
 	bp->p_blen  = exehead.blen;
-	bp->p_dta   = (void *) CFSwapInt32HostToBig(bp->p_cmdline - m_RAM68k);
+	bp->p_dta   = CFSwapInt32HostToBig(bp->p_cmdline - m_RAM68k);
 	bp->p_parent= NULL;
 
 	DebugInfo("CMagiC::LoadReloc() - Startadresse Atari = 0x%08lx (host)", m_RAM68k);
 	DebugInfo("CMagiC::LoadReloc() - Speichergröße Atari = 0x%08lx (= %lu kBytes)", m_RAM68ksize, m_RAM68ksize >> 10);
-	DebugInfo("CMagiC::LoadReloc() - Ladeadresse des Systems (TEXT) = 0x%08lx (68k)", CFSwapInt32BigToHost((uint32_t) (bp->p_tbase)));
+//	DebugInfo("CMagiC::LoadReloc() - Ladeadresse des Systems (TEXT) = 0x%08lx (68k)", CFSwapInt32BigToHost((uint32_t) (bp->p_tbase)));
 
 	#if defined(_DEBUG_BASEPAGE)
 	{
@@ -1190,7 +1197,7 @@ static void PixmapToBigEndian(MXVDI_PIXMAP *thePixMap)
 		bAtariVideoRamHostEndian = false;
 	}
 
-	thePixMap->baseAddr      = (UINT8 *) CFSwapInt32HostToBig((UInt32) thePixMap->baseAddr);
+	thePixMap->baseAddr      = (UINT8 *) CFSwapInt32HostToBig((size_t) thePixMap->baseAddr);
 	thePixMap->rowBytes      = CFSwapInt16HostToBig(thePixMap->rowBytes);
 	thePixMap->bounds_top    = CFSwapInt16HostToBig(thePixMap->bounds_top);
 	thePixMap->bounds_left   = CFSwapInt16HostToBig(thePixMap->bounds_left);
@@ -1392,7 +1399,10 @@ Assign more memory to the application using the Finder dialogue "Information"!
 		goto err_inv_os;
 	}
 
-	assert(sizeof(CMagiC_CPPCCallback) == 16);
+    fprintf(stderr, "size = %lu\n", sizeof(CMagiC_CPPCCallback));
+
+    
+    assert(sizeof(CMagiC_CPPCCallback) == 16);
 
 	if	(CFSwapInt32BigToHost(pMacXSysHdr->MacSys_len) != sizeof(*pMacXSysHdr))
 	{
@@ -1415,61 +1425,95 @@ Reinstall the application.
 	pMacXSysHdr->MacSys_verMac = CFSwapInt32HostToBig(10);
 	pMacXSysHdr->MacSys_cpu = CFSwapInt16HostToBig(20);		// 68020
 	pMacXSysHdr->MacSys_fpu = CFSwapInt16HostToBig(0);		// keine FPU
-	pMacXSysHdr->MacSys_init.m_Callback = &CMagiC::AtariInit;
-	pMacXSysHdr->MacSys_init.m_thisptr = this;
-	pMacXSysHdr->MacSys_biosinit.m_Callback = &CMagiC::AtariBIOSInit;
-	pMacXSysHdr->MacSys_biosinit.m_thisptr = this;
-	pMacXSysHdr->MacSys_VdiInit.m_Callback = &CMagiC::AtariVdiInit;
-	pMacXSysHdr->MacSys_VdiInit.m_thisptr = this;
-	pMacXSysHdr->MacSys_Exec68k.m_Callback = &CMagiC::AtariExec68k;
-	pMacXSysHdr->MacSys_Exec68k.m_thisptr = this;
-	pMacXSysHdr->MacSys_pixmap = CFSwapInt32HostToBig(((UINT32) &pAtari68kData->m_PixMap) - (UINT32) m_RAM68k);
-	pMacXSysHdr->MacSys_pMMXCookie = CFSwapInt32HostToBig(((UINT32) &pAtari68kData->m_CookieData) - (UINT32) m_RAM68k);
+    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariInit;
+    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+	pMacXSysHdr->MacSys_init.internal = &g_callbackThunk[m_thunkIndex];
+    m_thunkIndex++;
+
+    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariBIOSInit;
+    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+    pMacXSysHdr->MacSys_biosinit.internal = &g_callbackThunk[m_thunkIndex];
+    m_thunkIndex++;
+
+    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariVdiInit;
+    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+    pMacXSysHdr->MacSys_VdiInit.internal = &g_callbackThunk[m_thunkIndex];
+    m_thunkIndex++;
+
+    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariExec68k;
+    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+    pMacXSysHdr->MacSys_Exec68k.internal = &g_callbackThunk[m_thunkIndex];
+    m_thunkIndex++;
+
+	pMacXSysHdr->MacSys_pixmap = CFSwapInt32HostToBig(((size_t) &pAtari68kData->m_PixMap) - (size_t) m_RAM68k);
+	pMacXSysHdr->MacSys_pMMXCookie = CFSwapInt32HostToBig(((size_t) &pAtari68kData->m_CookieData) - (size_t) m_RAM68k);
+#if 0
 	pMacXSysHdr->MacSys_Xcmd.m_Callback = &CXCmd::Command;
 	pMacXSysHdr->MacSys_Xcmd.m_thisptr = pXCmd;
-	pMacXSysHdr->MacSys_PPCAddr = (void *) CFSwapInt32HostToBig((UInt32) m_RAM68k);
-	pMacXSysHdr->MacSys_VideoAddr = (void *) CFSwapInt32HostToBig((UInt32) m_pMagiCScreen->m_PixMap.baseAddr);
-	pMacXSysHdr->MacSys_gettime = (void *) AtariGettime;
-	pMacXSysHdr->MacSys_settime = (void *) AtariSettime;
-	pMacXSysHdr->MacSys_Setpalette = (void *) AtariSetpalette;
-	pMacXSysHdr->MacSys_Setcolor = (void *) AtariSetcolor;
-	pMacXSysHdr->MacSys_VsetRGB = (void *) AtariVsetRGB;
-	pMacXSysHdr->MacSys_VgetRGB = (void *) AtariVgetRGB;
-	pMacXSysHdr->MacSys_syshalt = (void *) AtariSysHalt;
-	pMacXSysHdr->MacSys_syserr = (void *) AtariSysErr;
-	pMacXSysHdr->MacSys_coldboot = (void *) AtariColdBoot;
-	pMacXSysHdr->MacSys_exit = (void *) AtariExit;
-	pMacXSysHdr->MacSys_debugout = (void *) AtariDebugOut;
-	pMacXSysHdr->MacSys_error = (void *) AtariError;
-	pMacXSysHdr->MacSys_prtos = (void *) AtariPrtOs;
-	pMacXSysHdr->MacSys_prtin = (void *) AtariPrtIn;
-	pMacXSysHdr->MacSys_prtout = (void *) AtariPrtOut;
-	pMacXSysHdr->MacSys_prtouts = (void *) AtariPrtOutS;
-	pMacXSysHdr->MacSys_serconf = (void *) AtariSerConf;
-	pMacXSysHdr->MacSys_seris = (void *) AtariSerIs;
-	pMacXSysHdr->MacSys_seros = (void *) AtariSerOs;
-	pMacXSysHdr->MacSys_serin = (void *) AtariSerIn;
-	pMacXSysHdr->MacSys_serout = (void *) AtariSerOut;
-	pMacXSysHdr->MacSys_SerOpen = (void *) AtariSerOpen;
-	pMacXSysHdr->MacSys_SerClose = (void *) AtariSerClose;
-	pMacXSysHdr->MacSys_SerRead = (void *) AtariSerRead;
-	pMacXSysHdr->MacSys_SerWrite = (void *) AtariSerWrite;
-	pMacXSysHdr->MacSys_SerStat = (void *) AtariSerStat;
-	pMacXSysHdr->MacSys_SerIoctl = (void *) AtariSerIoctl;
-	pMacXSysHdr->MacSys_GetKeybOrMouse.m_Callback = &CMagiC::AtariGetKeyboardOrMouseData;
-	pMacXSysHdr->MacSys_GetKeybOrMouse.m_thisptr = this;
-	pMacXSysHdr->MacSys_dos_macfn = (void *) AtariDOSFn;
+#endif
+	pMacXSysHdr->MacSys_PPCAddr =  CFSwapInt32HostToBig((size_t) m_RAM68k);
+	pMacXSysHdr->MacSys_VideoAddr =  CFSwapInt32HostToBig((size_t) m_pMagiCScreen->m_PixMap.baseAddr);
+#define SetThunk(p,a,b) { g_thunks[AtariThunkIndex(a)] = (void*)b; p->a = AtariThunkIndex(a); }
+    SetThunk(pMacXSysHdr, MacSys_gettime, AtariGettime);
+	SetThunk(pMacXSysHdr,MacSys_settime, AtariSettime);
+	SetThunk(pMacXSysHdr,MacSys_Setpalette, AtariSetpalette);
+	SetThunk(pMacXSysHdr,MacSys_Setcolor, AtariSetcolor);
+	SetThunk(pMacXSysHdr,MacSys_VsetRGB, AtariVsetRGB);
+	SetThunk(pMacXSysHdr,MacSys_VgetRGB, AtariVgetRGB);
+	SetThunk(pMacXSysHdr,MacSys_syshalt, AtariSysHalt);
+	SetThunk(pMacXSysHdr,MacSys_syserr, AtariSysErr);
+	SetThunk(pMacXSysHdr,MacSys_coldboot, AtariColdBoot);
+	SetThunk(pMacXSysHdr,MacSys_exit, AtariExit);
+	SetThunk(pMacXSysHdr,MacSys_debugout, AtariDebugOut);
+	SetThunk(pMacXSysHdr,MacSys_error, AtariError);
+	SetThunk(pMacXSysHdr,MacSys_prtos, AtariPrtOs);
+	SetThunk(pMacXSysHdr,MacSys_prtin, AtariPrtIn);
+	SetThunk(pMacXSysHdr,MacSys_prtout, AtariPrtOut);
+	SetThunk(pMacXSysHdr,MacSys_prtouts, AtariPrtOutS);
+	SetThunk(pMacXSysHdr,MacSys_serconf, AtariSerConf);
+	SetThunk(pMacXSysHdr,MacSys_seris, AtariSerIs);
+	SetThunk(pMacXSysHdr,MacSys_seros, AtariSerOs);
+	SetThunk(pMacXSysHdr,MacSys_serin, AtariSerIn);
+	SetThunk(pMacXSysHdr,MacSys_serout, AtariSerOut);
+	SetThunk(pMacXSysHdr,MacSys_SerOpen, AtariSerOpen);
+	SetThunk(pMacXSysHdr,MacSys_SerClose, AtariSerClose);
+	SetThunk(pMacXSysHdr,MacSys_SerRead, AtariSerRead);
+	SetThunk(pMacXSysHdr,MacSys_SerWrite, AtariSerWrite);
+	SetThunk(pMacXSysHdr,MacSys_SerStat, AtariSerStat);
+	SetThunk(pMacXSysHdr,MacSys_SerIoctl, AtariSerIoctl);
+    
+    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariGetKeyboardOrMouseData;
+    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+    pMacXSysHdr->MacSys_GetKeybOrMouse.internal = &g_callbackThunk[m_thunkIndex];
+    m_thunkIndex++;
+    
+	SetThunk(pMacXSysHdr,MacSys_dos_macfn,AtariDOSFn);
+#if 0
+#if 0
 	pMacXSysHdr->MacSys_xfs.m_Callback = &CMacXFS::XFSFunctions;
+#endif
 	pMacXSysHdr->MacSys_xfs.m_thisptr = &m_MacXFS;
+#if 0
 	pMacXSysHdr->MacSys_xfs_dev.m_Callback = &CMacXFS::XFSDevFunctions;
+#endif
 	pMacXSysHdr->MacSys_xfs_dev.m_thisptr = &m_MacXFS;
-	pMacXSysHdr->MacSys_drv2devcode.m_Callback = &CMacXFS::Drv2DevCode;
-	pMacXSysHdr->MacSys_drv2devcode.m_thisptr = &m_MacXFS;
-	pMacXSysHdr->MacSys_rawdrvr.m_Callback = &CMacXFS::RawDrvr;
-	pMacXSysHdr->MacSys_rawdrvr.m_thisptr = &m_MacXFS;
-	pMacXSysHdr->MacSys_Daemon.m_Callback = &CMagiC::MmxDaemon;
-	pMacXSysHdr->MacSys_Daemon.m_thisptr = this;
-	pMacXSysHdr->MacSys_Yield = (void *) AtariYield;
+#if 0
+    pMacXSysHdr->MacSys_drv2devcode.m_Callback = &CMacXFS::Drv2DevCode;
+#endif
+    pMacXSysHdr->MacSys_drv2devcode.m_thisptr = &m_MacXFS;
+#if 0
+    pMacXSysHdr->MacSys_rawdrvr.m_Callback = &CMacXFS::RawDrvr;
+#endif
+    pMacXSysHdr->MacSys_rawdrvr.m_thisptr = &m_MacXFS;
+#endif
+    
+    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::MmxDaemon;
+    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+    pMacXSysHdr->MacSys_Daemon.internal = &g_callbackThunk[m_thunkIndex];
+    m_thunkIndex++;
+    
+
+	SetThunk(pMacXSysHdr, MacSys_Yield, AtariYield);
 
 	// ssp nach Reset
 	*((UINT32 *)(m_RAM68k + 0)) = CFSwapInt32HostToBig(512*1024);		// Stack auf 512k
@@ -1493,11 +1537,11 @@ Reinstall the application.
 
 	chksum = 0;
 	UINT32 *fromptr = (UINT32 *) (m_RAM68k + CFSwapInt32BigToHost(pMacXSysHdr->MacSys_syshdr));
-	UINT32 *toptr = (UINT32 *) (m_RAM68k + CFSwapInt32BigToHost((UINT32) m_BasePage->p_tbase) + CFSwapInt32BigToHost(m_BasePage->p_tlen) + CFSwapInt32BigToHost(m_BasePage->p_dlen));
+	UINT32 *toptr = (UINT32 *) (m_RAM68k + CFSwapInt32BigToHost((size_t) m_BasePage->p_tbase) + CFSwapInt32BigToHost(m_BasePage->p_tlen) + CFSwapInt32BigToHost(m_BasePage->p_dlen));
 #ifdef _DEBUG
 //	AdrOsRomStart = CFSwapInt32BigToHost(pMacXSysHdr->MacSys_syshdr);			// Beginn schreibgeschützter Bereich
-	AdrOsRomStart = CFSwapInt32BigToHost((UINT32) m_BasePage->p_tbase);		// Beginn schreibgeschützter Bereich
-	AdrOsRomEnd = CFSwapInt32BigToHost((UINT32) m_BasePage->p_tbase) + CFSwapInt32BigToHost(m_BasePage->p_tlen) + CFSwapInt32BigToHost(m_BasePage->p_dlen);	// Ende schreibgeschützter Bereich
+	AdrOsRomStart = CFSwapInt32BigToHost((size_t) m_BasePage->p_tbase);		// Beginn schreibgeschützter Bereich
+	AdrOsRomEnd = CFSwapInt32BigToHost((size_t) m_BasePage->p_tbase) + CFSwapInt32BigToHost(m_BasePage->p_tlen) + CFSwapInt32BigToHost(m_BasePage->p_dlen);	// Ende schreibgeschützter Bereich
 #endif
 	do
 	{
@@ -1518,13 +1562,15 @@ Reinstall the application.
 	// Laufwerk C: machen
 
 	*((UINT32 *)(m_RAM68k + _drvbits)) = CFSwapInt32HostToBig(0);		// noch keine Laufwerke
-	m_MacXFS.SetXFSDrive(
+#if 0
+    m_MacXFS.SetXFSDrive(
 					'C'-'A',							// drvnum
 					CMacXFS::MacDir,					// drvType
 					CGlobals::s_rootfsUrl,				// path
 					(Globals.s_Preferences.m_drvFlags['C'-'A'] & 2) ? false : true,	// lange Dateinamen
 					(Globals.s_Preferences.m_drvFlags['C'-'A'] & 1) ? true : false,	// umgekehrte Verzeichnis-Reihenfolge (Problem bei OS X 10.2!)
 					m_RAM68k);
+#endif
 	*((UINT16 *)(m_RAM68k + _bootdev)) = CFSwapInt16HostToBig('C'-'A');	// Boot-Laufwerk C:
 
 	// Andere Laufwerke außer C: machen
@@ -1660,6 +1706,7 @@ void CMagiC::GetActAtariPrg(const char **pName, UINT32 *pact_pd)
 
 void CMagiC::ChangeXFSDrive(short drvNr)
 {
+#if 0
 	CMacXFS::MacXFSDrvType NewType;
 
 	if	(drvNr == 'U' - 'A')
@@ -1685,6 +1732,7 @@ void CMagiC::ChangeXFSDrive(short drvNr)
 					(Globals.s_Preferences.m_drvFlags[drvNr] & 1) ? true : false,	// umgekehrte Verzeichnis-Reihenfolge (Problem bei OS X 10.2!)
 					m_RAM68k);
 		}
+#endif
 }
 
 
@@ -2922,7 +2970,7 @@ UINT32 CMagiC::AtariSettime(UINT32 params, unsigned char *AdrOffset68k)
 	UINT32 time;
 	DateTimeRec dtr;
 
-
+#if 0
 	time = CFSwapInt32BigToHost(*((UINT32 *) params));
 	dtr.second = (short) ((time&31)<<1);
 	dtr.minute = (short) ((time>>5)&63);
@@ -2931,6 +2979,7 @@ UINT32 CMagiC::AtariSettime(UINT32 params, unsigned char *AdrOffset68k)
 	dtr.month = (short) ((time>>21)&15);
 	dtr.year = (short) ((time>>25)+1980);
 	SetTime(&dtr);
+#endif
 	return(0);
 }
 
@@ -2995,7 +3044,7 @@ UINT32 CMagiC::AtariVsetRGB(UINT32 params, unsigned char *AdrOffset68k)
 	pColourTable = pTheMagiC->m_pMagiCScreen->m_pColourTable;
 	j = min(MAGIC_COLOR_TABLE_LEN, index + cnt);
 	for	(i = index, pColourTable += index;
-		i < j;
+		i < j; 
 		i++, pValues += 4,pColourTable++)
 	{
 		// Atari: 00rrggbb
@@ -3616,7 +3665,7 @@ UINT32 CMagiC::AtariSerConf(UINT32 params, unsigned char *AdrOffset68k)
 					ret = pTheSerial->Config(
 						bSet,						// Input-Rate ggf. ändern
 						NewBaudrate,				// neue Input-Rate
-						&OldBaudrate,				// alte Baud-Rate
+						(unsigned long *)&OldBaudrate,				// alte Baud-Rate
 						false,						// Output-Rate nicht ändern
 						0,						// neue Output-Rate
 						NULL,						// alte Output-Rate egal
@@ -3645,7 +3694,7 @@ UINT32 CMagiC::AtariSerConf(UINT32 params, unsigned char *AdrOffset68k)
 						NULL,						// alte Input-Rate egal
 						bSet,						// Output-Rate ggf. ändern
 						NewBaudrate,				// neue Output-Rate
-						&OldBaudrate,				// alte Output-Rate
+						(unsigned long*)&OldBaudrate,				// alte Output-Rate
 						false,						// Xon/Xoff ändern
 						false,
 						NULL,
@@ -4233,7 +4282,7 @@ UINT32 CMagiC::AtariSerIoctl(UINT32 params, unsigned char *AdrOffset68k)
 				ret = pTheSerial->Config(
 					bSet,						// Input-Rate ggf. ändern
 					NewBaudrate,				// neue Input-Rate
-					&OldBaudrate,				// alte Baud-Rate
+					(unsigned long*)&OldBaudrate,				// alte Baud-Rate
 					false,						// Output-Rate nicht ändern
 					0,						// neue Output-Rate
 					NULL,						// alte Output-Rate egal
@@ -4262,7 +4311,7 @@ UINT32 CMagiC::AtariSerIoctl(UINT32 params, unsigned char *AdrOffset68k)
 					NULL,						// alte Input-Rate egal
 					bSet,						// Output-Rate ggf. ändern
 					NewBaudrate,				// neue Output-Rate
-					&OldBaudrate,				// alte Output-Rate
+					(unsigned long *)&OldBaudrate,				// alte Output-Rate
 					false,						// Xon/Xoff ändern
 					false,
 					NULL,

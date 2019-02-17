@@ -18,7 +18,7 @@
 
 /*
 *
-* Enthält alle globalen Variablen
+* Enth√§lt alle globalen Variablen
 *
 */
 
@@ -92,14 +92,14 @@ class CGlobals
 //	static short s_ThisResFile;
 //	static ProcessSerialNumber s_ownPSN;
 	static ProcessInfoRec s_ProcessInfo;
-	// die ausführbare Datei
+	// die ausf√ºhrbare Datei
 /*
 	static FSSpec s_ProcessPath;
 */
-	// der Ordner, in dem die ausführbare Datei bzw. das Bundle liegt
+	// der Ordner, in dem die ausf√ºhrbare Datei bzw. das Bundle liegt
 	static FSSpec s_ProcDir;
 	static long s_ProcDirID;			// hier liegt das Bundle bzw. die PEF-Datei
-	static long s_ExecutableDirID;		// hier liegt die ausführbare Datei
+	static long s_ExecutableDirID;		// hier liegt die ausf√ºhrbare Datei
 	// dasselbe, aber als Carbon-Pfad
 	static char s_ThisPathNameCarbon[256];
 	// nochmal dasselbe, aber als UNIX-Pfad (Versuch!)
@@ -112,9 +112,9 @@ class CGlobals
 #endif
 	static CFURLRef s_MagiCKernelUrl;
 	static CFURLRef s_rootfsUrl;
-	// Mac-Menü eingeschaltet lassen, kein Vollbild
+	// Mac-Men√º eingeschaltet lassen, kein Vollbild
 	static bool s_bShowMacMenu;
-	// aktuelle Atari-Bildschirmgröße
+	// aktuelle Atari-Bildschirmgr√∂√üe
 	static bool s_bAtariScreenManualSize;
 	static unsigned short s_AtariScreenX;
 	static unsigned short s_AtariScreenY;

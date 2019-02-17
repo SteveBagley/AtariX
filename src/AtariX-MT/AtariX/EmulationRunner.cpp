@@ -810,7 +810,7 @@ void EmulationRunner::_OpenWindow(void)
 	//	SDL_SetRenderDrawColor(m_sdl_renderer, 255, 255, 255, 255);
 	//	SDL_RenderClear(m_sdl_renderer);
 
-	// alles weiß, aber noch nicht rendern, weil Fenster unsichtbar.
+	// alles wei√ü, aber noch nicht rendern, weil Fenster unsichtbar.
 
 	// draw test
 #if 1
@@ -957,7 +957,7 @@ void EmulationRunner::EventLoop(void)
     SDL_Event event;
 
 	// Do not catch keyboard events, leave them for dialogue windows
-	SDL_KeyboardActivate(0);		// TODO: Find better hack
+//	SDL_KeyboardActivate(0);		// TODO: Find better hack
 
     while((!m_bQuitLoop) && (SDL_WaitEvent(&event)))
 	{
@@ -992,7 +992,7 @@ void EmulationRunner::EventLoop(void)
 								}
 							}
 							// Now catch keyboard events
-							SDL_KeyboardActivate(1);
+//							SDL_KeyboardActivate(1);
 							if (m_atariHideHostMouse)
 							{
 								SDL_ShowCursor(SDL_DISABLE);
@@ -1009,7 +1009,7 @@ void EmulationRunner::EventLoop(void)
 								free(clipboardData);
 							}
 							// No longer catch keyboard events
-							SDL_KeyboardActivate(0);
+//							SDL_KeyboardActivate(0);
 							if (m_atariHideHostMouse)
 							{
 								// show mouse pointer

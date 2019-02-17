@@ -29,7 +29,7 @@
 // Programm-Header
 #include "Debug.h"
 #include "Globals.h"
-#include "MagiCPrint.h"
+#include "MagicPrint.h"
 #include "PascalStrings.h"
 
 // Schalter
@@ -127,6 +127,7 @@ UInt32 CMagiCPrint::Read(unsigned char *pBuf, UInt32 NumOfBytes)
 
 UInt32 CMagiCPrint::Write(const unsigned char *pBuf, UInt32 cnt)
 {
+#if 0
 	FSSpec spec;
 	OSErr err;
 	unsigned char PrintFileName[256];
@@ -173,7 +174,7 @@ UInt32 CMagiCPrint::Write(const unsigned char *pBuf, UInt32 cnt)
 //	CDebug::DebugInfo("CMagiCPrint::Write() --- s_LastPrinterAccess = %u", s_LastPrinterAccess);
 
 	// Rückgabe: Anzahl geschriebener Zeichen
-
+#endif
 	return(cnt);
 }
 
@@ -187,6 +188,7 @@ UInt32 CMagiCPrint::Write(const unsigned char *pBuf, UInt32 cnt)
 
 UInt32 CMagiCPrint::ClosePrinterFile(void)
 {
+#if 0
 	char szPrintFileNameUnix[256];
 	char command2[512];
 	char command[512];
@@ -244,5 +246,6 @@ UInt32 CMagiCPrint::ClosePrinterFile(void)
 	ierr = system(command);
 	if	(ierr)
 		DebugError("CMagiCPrint::ClosePrinterFile() --- Fehler %d beim Drucken", ierr);
+#endif
 	return(0);
 }

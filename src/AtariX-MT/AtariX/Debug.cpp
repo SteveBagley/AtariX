@@ -18,7 +18,7 @@
 
 /*
 *
-* Enthält die Debugger-Ausgaben
+* Enth√§lt die Debugger-Ausgaben
 *
 */
 
@@ -43,6 +43,7 @@ int CDebug::GeneralPurposeVariable = 0;
 
 void CDebug::_DebugInit(const unsigned char *DebugFileName)
 {
+#if 0
 	if (DebugFileName)
 	{
 		FSSpec spec;
@@ -51,14 +52,15 @@ void CDebug::_DebugInit(const unsigned char *DebugFileName)
 		err = FSMakeFSSpec(0, 0, DebugFileName, &spec);
 		if	((err != 0) && (err != fnfErr))
 			return;		// Fehler
-		// Bestehende Datei löschen
+		// Bestehende Datei l√∂schen
 		FSpDelete(&spec);
 		// Neue Datei anlegen
 		err = FSpCreate(&spec, 0, 0, smSystemScript);
-		// Neue Datei öffnen
+		// Neue Datei √∂ffnen
 		if	(!err)
 			err = FSpOpenDF(&spec, fsWrPerm, &RefNum);
 	}
+#endif
 }
 
 
@@ -79,9 +81,12 @@ void CDebug::_DebugPrint(const char *head, const char *format, va_list arglist)
 
 //	SystemTime = TickCount();
 //	sprintf(line, "(%ld) %s", SystemTime, head);
+#if 0
 	GetTime(&dtr);
 	sprintf(line, "(%02d:%02d:%02d) %s", dtr.hour, dtr.minute, dtr.second, head);
-
+#endif
+    line[0] = 0;
+    
 	s = line + strlen(line);
 	vsprintf(s, format, arglist);
 	// Steuerzeichen entfernen
@@ -95,6 +100,7 @@ void CDebug::_DebugPrint(const char *head, const char *format, va_list arglist)
 		memmove(s, s+1, strlen(s+1) + 1);
 	}
 
+#if 0
 	if (RefNum)
 	{
 		// Zeilenende
@@ -104,9 +110,13 @@ void CDebug::_DebugPrint(const char *head, const char *format, va_list arglist)
 		(void) FSWrite(RefNum, &count, line);
 	}
 	else
-	{
+    {
+#endif
 		fprintf(stderr, "%s\n", line);
-	}
+#if 0
+        
+    }
+#endif
 }
 
 

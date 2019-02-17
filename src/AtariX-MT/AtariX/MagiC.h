@@ -18,7 +18,7 @@
 
 /*
 *
-* Enthält alles, was mit "MagicMac OS" zu tun hat
+* Enth√§lt alles, was mit "MagicMac OS" zu tun hat
 *
 */
 
@@ -34,8 +34,11 @@
 #include "MagiCKeyboard.h"
 #include "MagiCMouse.h"
 #include "MagiCSerial.h"
-#include "MagiCPrint.h"
+#include "MagicPrint.h"
 // Schalter
+
+
+
 
 #define KEYBOARDBUFLEN	32
 #define N_ATARI_FILES		8
@@ -73,6 +76,9 @@ class CMagiC
 
 	char bVideoBufChanged;
    private:
+    int m_thunkIndex = 0;
+    /* end hack */
+    
    	// Typdefinitionen
    	#pragma options align=packed
 
@@ -145,15 +151,15 @@ class CMagiC
 	// private Attribute
 	CMagiCScreen *m_pMagiCScreen;		// Bildschirmdaten
 	unsigned char *m_RAM68k;			// Zeiger auf den emulierten Speicher
-	size_t m_RAM68ksize;				// Größe dieses Blocks
-	size_t m_Video68ksize;				// Größe dieses Blocks
+	size_t m_RAM68ksize;				// Gr√∂√üe dieses Blocks
+	size_t m_Video68ksize;				// Gr√∂√üe dieses Blocks
 	unsigned char *m_AtariKbData;		// [0] = kbshift, [1] = kbrepeat
 	UINT32 *m_pAtariActPd;
 	UINT32 *m_pAtariActAppl;
 	BasePage *m_BasePage;			// geladener MagiC-Kernel
-	MPQueueID m_EmuNotifQID;			// Notification-Queue für den Thread
+	MPQueueID m_EmuNotifQID;			// Notification-Queue f√ºr den Thread
 	MPTaskID m_EmuTaskID;			// Der Thread
-	CMacXFS m_MacXFS;				// das XFS
+    CMacXFS m_MacXFS;				// das XFS
 	CMagiCKeyboard m_MagiCKeyboard;	// Atari-Tastatur
 	CMagiCMouse m_MagiCMouse;		// Atari-Maus
 	CMagiCSerial m_MagiCSerial;			// serielle Schnittstelle
@@ -185,7 +191,7 @@ class CMagiC
 	bool m_bSpecialExec;
 	unsigned char *m_LineAVars;
 
-	// Ringpuffer für Tastatur/Maus
+	// Ringpuffer f√ºr Tastatur/Maus
 	unsigned char m_cKeyboardOrMouseData[KEYBOARDBUFLEN];
 	unsigned char *m_pKbRead;		// Lesezeiger
 	unsigned char *m_pKbWrite;		// Schreibzeiger
@@ -193,7 +199,7 @@ class CMagiC
 	MPCriticalRegionID m_AECriticalRegionId;
 	// Apple Events (Atari-Programm direkt starten)
 	int m_iNoOfAtariFiles;
-	int m_iOldestAtariFile;	// für den Ringpuffer
+	int m_iOldestAtariFile;	// f√ºr den Ringpuffer
 	char m_szStartAtariFiles[N_ATARI_FILES][256];
 
 	// Bildschirmdaten
@@ -204,7 +210,7 @@ class CMagiC
 //	unsigned long m_BgBufferLineLenInBytes;
 	MPCriticalRegionID m_ScrCriticalRegionId;
 
-	// fürs Drucken (leider statisch)
+	// f√ºrs Drucken (leider statisch)
 	static UInt32 s_LastPrinterAccess;
 
 	UInt32 m_AtariShutDownDelay;		// added for AtariX

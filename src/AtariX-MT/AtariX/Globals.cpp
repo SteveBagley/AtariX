@@ -18,7 +18,7 @@
 
 /*
 *
-* Enthält alle globalen Variablen
+* Enth√§lt alle globalen Variablen
 *
 */
 
@@ -29,7 +29,8 @@
 // Programm-Header
 #include "Globals.h"
 #include "PascalStrings.h"
-extern "C" {
+extern "C"
+{
 #include "MyMoreFiles.h"
 }
 #include "FullPath.h"
@@ -48,7 +49,7 @@ FSSpec CGlobals::s_ProcessPath;
 */
 FSSpec CGlobals::s_ProcDir;
 long CGlobals::s_ProcDirID;					// hier liegt das Bundle
-long CGlobals::s_ExecutableDirID;				// hier liegt die ausführbare Datei
+long CGlobals::s_ExecutableDirID;				// hier liegt die ausf√ºhrbare Datei
 char CGlobals::s_ThisPathNameCarbon[256];
 char CGlobals::s_ThisPathNameUnix[256];
 
@@ -115,7 +116,7 @@ void CGlobals::GetRsrcStr(const unsigned char * name, char *s)
 /*****************************************************************
 *
 *  explizite erste Initialisierung
-*  Muß vor Init() aufgerufen werden. Wäre vielleicht besser
+*  Mu√ü vor Init() aufgerufen werden. W√§re vielleicht besser
 *  im Konstruktor aufgehoben?
 *
 ******************************************************************/
@@ -260,7 +261,8 @@ int CGlobals::Init(void)
 #endif
 
 	// Carbon-Pfad ermitteln
-
+#if 0
+/* SRB */
 	{
 		Handle hFullPath;
 		short FullPathLen;
@@ -279,7 +281,7 @@ int CGlobals::Init(void)
 			DisposeHandle(hFullPath);
 		}
 	}
-
+#endif
 	// Berechne Unix-Pfad aus Carbon-Pfad (Versuch)
 
 	{
@@ -288,6 +290,11 @@ int CGlobals::Init(void)
 		s = strchr(s_ThisPathNameCarbon, ':');
 		if	(s)
 		{
+            /* SRB */
+            s_ThisPathNameUnix[0] = '/';
+            strcpy(s_ThisPathNameUnix+1, s+1);
+
+#if 0
 			if	(s_ProcDir.vRefNum == -100)
 			{
 				DebugInfo("CGlobals::Init() -- Boot-Volume");
@@ -300,7 +307,7 @@ int CGlobals::Init(void)
 				strcpy(s_ThisPathNameUnix, "/Volumes/");
 				strcat(s_ThisPathNameUnix, s_ThisPathNameCarbon);
 			}
-
+#endif
 			while((s = strchr(s_ThisPathNameUnix, ':')) != NULL)
 			{
 				*s = '/';
@@ -335,6 +342,7 @@ OSErr CGlobals::GetDosPath
 	unsigned uBufLen
 )
 {
+#if 0
 	OSErr err;
 	Handle hFullPath;
 	short FullPathLen;
@@ -361,4 +369,6 @@ OSErr CGlobals::GetDosPath
 	}
 
 	return(err);
+#endif
+    return noErr;
 }

@@ -12,6 +12,7 @@
 		38694A270A23D420005C94A3 /* EmulationRunner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 38694A250A23D420005C94A3 /* EmulationRunner.cpp */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		AA42662D2218B37100175445 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA42662C2218B37100175445 /* SDL2.framework */; };
 		AD027A5E1429382D003CBB79 /* SDLMainIntro.m in Sources */ = {isa = PBXBuildFile; fileRef = AD027A5D1429382D003CBB79 /* SDLMainIntro.m */; };
 		AD0792A31461EBCD0043E0F6 /* PreferencesWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD0792A21461EBCD0043E0F6 /* PreferencesWindowController.m */; };
 		AD0936E21440B537006D73E9 /* gui.m in Sources */ = {isa = PBXBuildFile; fileRef = AD0936E11440B537006D73E9 /* gui.m */; };
@@ -50,8 +51,6 @@
 		AD995129157167CE009CCE96 /* ApplicationIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = AD995128157167CE009CCE96 /* ApplicationIcon.png */; };
 		ADA0A1811460AB23002C580A /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = ADA0A1801460AB23002C580A /* Preferences.xib */; };
 		ADAF180A1572562500676157 /* MagicMacX.OS in Resources */ = {isa = PBXBuildFile; fileRef = ADAF18081572562400676157 /* MagicMacX.OS */; };
-		ADB9D2681A44EADC00B5CCED /* SDL2.framework in Copy Frameworks into .app bundle */ = {isa = PBXBuildFile; fileRef = ADB9D2671A44EADC00B5CCED /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		ADC8D9D41A3F81EC0014AE2F /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADC8D9D31A3F81EC0014AE2F /* SDL2.framework */; };
 		ADD0A10D156EDED100FF1993 /* AtariCrashWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = ADD0A10C156EDED100FF1993 /* AtariCrashWindowController.m */; };
 /* End PBXBuildFile section */
 
@@ -62,7 +61,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				ADB9D2681A44EADC00B5CCED /* SDL2.framework in Copy Frameworks into .app bundle */,
 			);
 			name = "Copy Frameworks into .app bundle";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -80,6 +78,7 @@
 		38694A260A23D420005C94A3 /* EmulationRunner.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = EmulationRunner.h; sourceTree = SOURCE_ROOT; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* AtariX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AtariX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA42662C2218B37100175445 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 		AD027A5C1429382D003CBB79 /* SDLMainIntro.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLMainIntro.h; sourceTree = "<group>"; };
 		AD027A5D1429382D003CBB79 /* SDLMainIntro.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLMainIntro.m; sourceTree = "<group>"; };
 		AD0792A11461EBCD0043E0F6 /* PreferencesWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferencesWindowController.h; sourceTree = "<group>"; };
@@ -162,8 +161,6 @@
 		ADAF18091572562400676157 /* English */ = {isa = PBXFileReference; lastKnownFileType = file; name = English; path = English.lproj/MagicMacX.OS; sourceTree = "<group>"; };
 		ADAF180B1572562B00676157 /* de */ = {isa = PBXFileReference; lastKnownFileType = file; name = de; path = de.lproj/MagicMacX.OS; sourceTree = "<group>"; };
 		ADAF180C1572562E00676157 /* fr */ = {isa = PBXFileReference; lastKnownFileType = file; name = fr; path = fr.lproj/MagicMacX.OS; sourceTree = "<group>"; };
-		ADB9D2671A44EADC00B5CCED /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SDL2.framework; sourceTree = "<group>"; };
-		ADC8D9D31A3F81EC0014AE2F /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SDL2.framework; sourceTree = "<group>"; };
 		ADCBEFF1146E90700079D3A4 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		ADD0A10B156EDED100FF1993 /* AtariCrashWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AtariCrashWindowController.h; sourceTree = "<group>"; };
 		ADD0A10C156EDED100FF1993 /* AtariCrashWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AtariCrashWindowController.m; sourceTree = "<group>"; };
@@ -175,7 +172,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ADC8D9D41A3F81EC0014AE2F /* SDL2.framework in Frameworks */,
+				AA42662D2218B37100175445 /* SDL2.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				002F3C0109D093BD00EBEB88 /* OpenGL.framework in Frameworks */,
 				AD3E859E143E508B0054D0E8 /* Carbon.framework in Frameworks */,
@@ -228,7 +225,7 @@
 		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				ADC8D9D31A3F81EC0014AE2F /* SDL2.framework */,
+				AA42662C2218B37100175445 /* SDL2.framework */,
 				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
 			);
@@ -246,7 +243,6 @@
 		29B97314FDCFA39411CA2CEA /* SDLOpenGLIntro */ = {
 			isa = PBXGroup;
 			children = (
-				ADB9D2671A44EADC00B5CCED /* SDL2.framework */,
 				AD6D7E00143FA92400575FB1 /* missing.h */,
 				AD6D7DFE143FA90C00575FB1 /* missing.cpp */,
 				AD6D7DFC143FA02300575FB1 /* config.h */,
@@ -528,10 +524,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -561,9 +558,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PREPROCESSOR_DEFINITIONS = "";
@@ -593,6 +591,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS)";
@@ -609,6 +608,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_VERSION_ppc = 3.3;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS)";

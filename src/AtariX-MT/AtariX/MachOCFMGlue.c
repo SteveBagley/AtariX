@@ -98,6 +98,7 @@ void	DisposeCFMFunctionPointer( void* inCfmProcPtr )
 
 void*	MachOFunctionPointerForCFMFunctionPointer( void* inCfmProcPtr )
 {
+#if 0
     UInt32	*vMachProcPtr = (UInt32*) NewPtr( sizeof(gGlueTemplate) );	// sizeof() really returns the data size here, not the size of a pointer. Trust me.
 
     vMachProcPtr[0] = gGlueTemplate[0] | ((UInt32)inCfmProcPtr >> 16);
@@ -109,6 +110,8 @@ void*	MachOFunctionPointerForCFMFunctionPointer( void* inCfmProcPtr )
     MakeDataExecutable( vMachProcPtr, sizeof(gGlueTemplate) );
 
     return( vMachProcPtr );
+#endif
+    return NULL;
 }
 
 

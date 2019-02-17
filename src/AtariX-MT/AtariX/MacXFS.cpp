@@ -34,10 +34,10 @@
 
 #include "config.h"
 // System-Header
-#include <Carbon/Carbon.h>
+//#include <Carbon/Carbon.h>
 #include <machine/endian.h>
-#include <StdLib.h>
-#include <String.h>
+#include <stdlib.h>
+#include <string.h>
 // Programm-Header
 #include "Debug.h"
 #include "Globals.h"
@@ -47,7 +47,7 @@
 #include "PascalStrings.h"
 extern "C" {
 #include "MyMoreFiles.h"
-#include "Fullpath.h"
+#include "FullPath.h"
 }
 
 #if defined(_DEBUG)
@@ -76,8 +76,8 @@ extern void _DumpAtariMem(const char *filename);
 
 CMacXFS::CMacXFS()
 {
-	register int i;
-
+	/*register*/ int i;
+#if 0
 	xfs_drvbits = 0;
 	for (i = 0; i < NDRVS; i++)
 	{
@@ -98,6 +98,7 @@ CMacXFS::CMacXFS()
 	drv_fsspec['M'-'A'].name[0] = EOS;
 
 	DebugInfo("CMacXFS::CMacXFS() -- Drive %c: %s dir order, %s names", 'A' + ('M'-'A'), drv_rvsDirOrder['M'-'A'] ? "reverse" : "normal", drv_longnames['M'-'A'] ? "long" : "8+3");
+#endif
 }
 
 
@@ -144,7 +145,7 @@ void CMacXFS::Set68kAdressRange(UInt32 AtariMemSize)
 {
 	m_AtariMemSize = AtariMemSize;
 }
-
+#if 0
 
 /*****************************************************************
 *
@@ -5534,3 +5535,4 @@ bool CMacXFS::GetPathFromFSSpec (FSSpec *spec, char* path, short pathSize)
 }
 */
 // EOF
+#endif
