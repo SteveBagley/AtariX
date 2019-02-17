@@ -72,11 +72,14 @@ class CMacXFS
 	CMacXFS();
 	~CMacXFS();
 	void Set68kAdressRange(UInt32 AtariMemSize);
-#if 0
 	INT32 XFSFunctions( UINT32 params, unsigned char *AdrOffset68k );
-	INT32 XFSDevFunctions( UINT32 params, unsigned char *AdrOffset68k );
+#if 0
+    INT32 XFSDevFunctions( UINT32 params, unsigned char *AdrOffset68k );
+#endif
 	INT32 Drv2DevCode( UINT32 params, unsigned char *AdrOffset68k );
-	INT32 RawDrvr( UINT32 params, unsigned char *AdrOffset68k );
+#if 0
+    INT32 RawDrvr( UINT32 params, unsigned char *AdrOffset68k );
+#endif
 	void SetXFSDrive (
 			short drv,
 			MacXFSDrvType drvType,
@@ -88,11 +91,9 @@ class CMacXFS
 			short drv,
 			bool longnames,
 			bool reverseDirOrder);
-#endif
    private:
 
 	UInt32 m_AtariMemSize;
-#if 0
     typedef void PD;
 
 #pragma options align=packed
@@ -203,7 +204,7 @@ typedef struct _mx_fd {
 	};
 
    	#pragma options align=reset
-
+#if 0
 	//bool GetXFSRootDir (short drv, short *vRefNum, long *dirID);
 	UINT32 DriveToDeviceCode (short drv);
 	long EjectDevice (short opcode, long device);
@@ -213,7 +214,7 @@ typedef struct _mx_fd {
 
 	// lokale Variablen:
 	// -----------------
-
+#endif
 	bool drv_changed[NDRVS];
 	bool drv_must_eject[NDRVS];
 	long xfs_drvbits;
@@ -224,11 +225,14 @@ typedef struct _mx_fd {
 * "x:\" steht.
 * Ungültige FSSpec haben die Volume-Id 0.
 */
-	FSSpec drv_fsspec[NDRVS];		// => macSys, damit MagiC die volume-ID
+#if 0
+    FSSpec drv_fsspec[NDRVS];		// => macSys, damit MagiC die volume-ID
 							// ermitteln kann.
 
-	FSRef xfs_path[NDRVS];		// nur auswerten, wenn drv_valid = true
-	bool drv_valid[NDRVS];			// zeigt an, ob alias gültig ist.
+    FSRef xfs_path[NDRVS];		// nur auswerten, wenn drv_valid = true
+#endif
+    CFURLRef xfs_path[NDRVS];
+    bool drv_valid[NDRVS];			// zeigt an, ob alias gültig ist.
 #if 0
 	CInfoPBRec	drv_pbrec[NDRVS];
 #endif
@@ -239,6 +243,7 @@ typedef struct _mx_fd {
 	MacXFSDrvType drv_type[NDRVS];
 	/* Zur Rueckgabe an den MagiC-Kernel: */
 	MX_SYMLINK mx_symlink;
+#if 0
 
 	// statische Funktionen
 
@@ -255,19 +260,25 @@ typedef struct _mx_fd {
 				unsigned char *dosname,
 				bool flg_longnames, bool toAtari);
 	static char *ps(char *s);
+#endif
 	static void sp(char *s);
-	static OSErr getInfo (CInfoPBPtr pb, FSSpec *fs);
+#if 0
+    static OSErr getInfo (CInfoPBPtr pb, FSSpec *fs);
 
 	// XFS-Aufrufe
 
 	INT32 xfs_sync(UINT16 drv);
 	void xfs_pterm (PD *pd);
+#endif
 	INT32 xfs_drv_open (UINT16 drv, MXFSDD *dd, INT32 flg_ask_diskchange);
+#if 0
 	INT32 xfs_drv_close(UINT16 drv, UINT16 mode);
-	INT32 xfs_path2DD(UINT16 mode, UINT16 drv, MXFSDD *rel_dd, char *pathname,
+#endif
+    INT32 xfs_path2DD(UINT16 mode, UINT16 drv, MXFSDD *rel_dd, char *pathname,
                   char **restpfad, MXFSDD *symlink_dd, char **symlink,
                    MXFSDD *dd,
                    UINT16 *dir_drive );
+#if 0
 	INT32 xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name, MAC_DTA *dta, UINT16 attrib);
 	INT32 xfs_snext(UINT16 drv, MAC_DTA *dta);
 	INT32 xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
@@ -317,7 +328,9 @@ typedef struct _mx_fd {
 //	OSErr cpath2DirID( int drv, char *cpath );
 	INT32 resolve_symlink( FSSpec *fs, UINT16 buflen, char *buf );
 	OSErr resAlias(AliasHandle alias,  FSSpec *gSpec, bool gOnlyMountedVols);
+#endif
 	INT32 drv_open (UINT16 drv, bool onlyMountedVols);
+#if 0
 	INT32 vRefNum2drv(short vRefNum, UINT16 *drv);
 	INT32 MakeFSSpecManually( short vRefNum, long reldir,
 					char *macpath,
@@ -335,10 +348,10 @@ typedef struct _mx_fd {
 
 	OSErr f_2_cinfo( MAC_FD *f, CInfoPBRec *pb, char *fname);
 	OSErr getFSSpecByFileRefNum (short fRefNum, FSSpec *spec, FCBPBRec *pb);
-
+#endif
 	void setDrivebits (long newbits, unsigned char *AdrOffset68k);
 //	short Num0DrvOfDrvr (short dRefNum, short drvNum);
-#endif
+
 };
 
 #endif

@@ -1497,24 +1497,20 @@ Reinstall the application.
     m_thunkIndex++;
 #endif
 	SetThunk(pMacXSysHdr,MacSys_dos_macfn,AtariDOSFn);
-#if 0
-#if 0
-	pMacXSysHdr->MacSys_xfs.m_Callback = &CMacXFS::XFSFunctions;
-#endif
-	pMacXSysHdr->MacSys_xfs.m_thisptr = &m_MacXFS;
+
+ 
+	pMacXSysHdr->MacSys_xfs.tc = (ThunkedCallbackType*)&ThunkedCallbackS<CMacXFS ,&CMacXFS::XFSFunctions>;
+	pMacXSysHdr->MacSys_xfs.self = &m_MacXFS;
 #if 0
 	pMacXSysHdr->MacSys_xfs_dev.m_Callback = &CMacXFS::XFSDevFunctions;
 #endif
-	pMacXSysHdr->MacSys_xfs_dev.m_thisptr = &m_MacXFS;
-#if 0
-    pMacXSysHdr->MacSys_drv2devcode.m_Callback = &CMacXFS::Drv2DevCode;
-#endif
-    pMacXSysHdr->MacSys_drv2devcode.m_thisptr = &m_MacXFS;
+	pMacXSysHdr->MacSys_xfs_dev.self = &m_MacXFS;
+    pMacXSysHdr->MacSys_drv2devcode.tc = (ThunkedCallbackType*)&ThunkedCallbackS<CMacXFS ,&CMacXFS::Drv2DevCode>;
+    pMacXSysHdr->MacSys_drv2devcode.self = &m_MacXFS;
 #if 0
     pMacXSysHdr->MacSys_rawdrvr.m_Callback = &CMacXFS::RawDrvr;
 #endif
-    pMacXSysHdr->MacSys_rawdrvr.m_thisptr = &m_MacXFS;
-#endif
+    pMacXSysHdr->MacSys_rawdrvr.self = &m_MacXFS;
 #if 0
     g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::MmxDaemon;
     g_callbackThunk[m_thunkIndex].m_thisptr = this;
@@ -1572,7 +1568,6 @@ Reinstall the application.
 	// Laufwerk C: machen
 
 	*((UINT32 *)(m_RAM68k + _drvbits)) = CFSwapInt32HostToBig(0);		// noch keine Laufwerke
-#if 0
     m_MacXFS.SetXFSDrive(
 					'C'-'A',							// drvnum
 					CMacXFS::MacDir,					// drvType
@@ -1580,7 +1575,7 @@ Reinstall the application.
 					(Globals.s_Preferences.m_drvFlags['C'-'A'] & 2) ? false : true,	// lange Dateinamen
 					(Globals.s_Preferences.m_drvFlags['C'-'A'] & 1) ? true : false,	// umgekehrte Verzeichnis-Reihenfolge (Problem bei OS X 10.2!)
 					m_RAM68k);
-#endif
+
 	*((UINT16 *)(m_RAM68k + _bootdev)) = CFSwapInt16HostToBig('C'-'A');	// Boot-Laufwerk C:
 
 	// Andere Laufwerke außer C: machen

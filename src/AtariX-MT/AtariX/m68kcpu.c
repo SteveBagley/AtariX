@@ -1245,7 +1245,7 @@ void m68k_op_call_emu_cproc(void)
 	unsigned a0, a1;
 	unsigned char *p, *q;
 	void **self;
-	typedef unsigned tfHostCallCpp(unsigned self, unsigned a1, unsigned char *emubase);
+	typedef unsigned tfHostCallCpp(void * self, unsigned a1, unsigned char *emubase);
 	tfHostCallCpp *proc;
 
 
@@ -1254,10 +1254,12 @@ void m68k_op_call_emu_cproc(void)
 	p = sBaseAddr + a0;		// address in host's address range
 	// geht nicht:
 	proc = *((tfHostCallCpp *)(p));
+    fprintf(stderr, "CPP Thunk from %p, %x\n", p, a0);
 	a0 = *((unsigned  *) (p + 0));
  //   p = a0 * g_ctStride + g_callbackThunk;
  //   q = p + 8;
-    
+
+    fprintf(stderr, "CPP Thunk from proc %p, %x\n", proc, a0);
     proc = (tfHostCallCpp *) *((tfHostCallCpp **)p);
 	self = *((void **)(p+8));
 	// call host function. Put return value into d0 (all in host endian-mode)
