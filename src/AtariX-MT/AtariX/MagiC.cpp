@@ -1609,10 +1609,12 @@ Reinstall the application.
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_init();
 
+#if 0
     /* SRB Dump RAM */
     FILE *fp = fopen("/Users/steve/Desktop/Magic.RAM", "wb");
     fwrite(m_RAM68k, 1, 16*1024*1024, fp);
     fclose(fp);
+#endif
 
     // Emulator starten
 
