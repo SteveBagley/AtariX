@@ -1580,7 +1580,7 @@ Reinstall the application.
 
 	// Andere Laufwerke außer C: machen
 
-	for	(register short i = 0; i < NDRIVES; i++)
+	for	(short i = 0; i < NDRIVES; i++)
 	{
 		ChangeXFSDrive(i);
 	}

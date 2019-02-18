@@ -1243,11 +1243,10 @@ void m68k_op_call_emu_proc(void)
 void m68k_op_call_emu_cproc(void)
 {
 	unsigned a0, a1;
-	unsigned char *p, *q;
+	unsigned char *p;
 	void **self;
 	typedef unsigned tfHostCallCpp(void * self, unsigned a1, unsigned char *emubase);
 	tfHostCallCpp *proc;
-
 
 	a0 = m68ki_cpu.dar[8];	// hopefully in host's endianess mode
 	a1 = m68ki_cpu.dar[9];
@@ -1256,8 +1255,6 @@ void m68k_op_call_emu_cproc(void)
 	proc = *((tfHostCallCpp *)(p));
     fprintf(stderr, "CPP Thunk from %p, %x\n", p, a0);
 	a0 = *((unsigned  *) (p + 0));
- //   p = a0 * g_ctStride + g_callbackThunk;
- //   q = p + 8;
 
     fprintf(stderr, "CPP Thunk from proc %p, %x\n", proc, a0);
     proc = (tfHostCallCpp *) *((tfHostCallCpp **)p);

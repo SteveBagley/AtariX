@@ -100,6 +100,7 @@ CMacXFS::CMacXFS()
 	drv_fsspec['M'-'A'].name[0] = EOS;
 #endif
 	DebugInfo("CMacXFS::CMacXFS() -- Drive %c: %s dir order, %s names", 'A' + ('M'-'A'), drv_rvsDirOrder['M'-'A'] ? "reverse" : "normal", drv_longnames['M'-'A'] ? "long" : "8+3");
+    _nextDdIndex = 0x101000000;
 }
 
 
@@ -962,7 +963,7 @@ INT32 CMacXFS::drv_open (UINT16 drv, bool onlyMountedVols)
 #if 0
 	HVolumeParam pbh;
 #endif
-    OSErr err;
+    OSErr err = noErr;
 
 //	checkForNewDrive (drv);
 
@@ -1012,6 +1013,7 @@ INT32 CMacXFS::xfs_drv_open (UINT16 drv, MXFSDD *dd, INT32 flg_ask_diskchange)
 {
 	//static void *oldsp;
 	INT32	err;
+    unsigned long index;
     
 #ifdef DEBUG_VERBOSE
 	DebugInfo("CMacXFS::xfs_drv_open(drv = %d, flag = %d)", (int) drv, (int) flg_ask_diskchange);
@@ -1033,10 +1035,9 @@ INT32 CMacXFS::xfs_drv_open (UINT16 drv, MXFSDD *dd, INT32 flg_ask_diskchange)
 
 	// note that dirID and vRefNum remain in CPU natural byte order, i.e. little endian on x86
 
-#if 0
-	dd->dirID = drv_dirID[drv];
-	dd->vRefNum = drv_fsspec[drv].vRefNum;
-#endif
+    index = indexForCFURL(xfs_path[drv]);
+	dd->dirID = indexToDirID(index);
+	dd->vRefNum = indexToVref(index);
 #ifdef DEBUG_VERBOSE
 	DebugInfo("CMacXFS::xfs_drv_open => (dd.dirID = %ld, vRefNum = %d)", dd->dirID, (int) dd->vRefNum);
 #endif
@@ -1243,6 +1244,12 @@ INT32 CMacXFS::MakeFSSpecManually( short vRefNum, long reldir,
 *
 *************************************************************/
 
+/* Return a DD struct that references the directory for the path in pathname,
+ * leaving a pointer to any remaining path
+ *
+ * Need to handle symlinks some how (but we'll ignore for now)
+ */
+
 INT32 CMacXFS::xfs_path2DD
 (
 	UINT16 mode,
@@ -1260,11 +1267,11 @@ INT32 CMacXFS::xfs_path2DD
 	CInfoPBRec pb;
 #endif
     unsigned char macpath[256];
-	register unsigned char *s,*t,*u;
-	register unsigned char c;
+    unsigned char *s,*t,*u;
+    unsigned char c;
 	bool get_parent;
 	short vRefNum;
-	long reldir = rel_dd->dirID;
+	int32_t reldir = rel_dd->dirID;
 
 
 #ifdef DEBUG_VERBOSE
@@ -1294,8 +1301,8 @@ INT32 CMacXFS::xfs_path2DD
 	/* Mac-Pfad. Eintraege "." und ".." werden beruecksichtigt.		*/
 	/* ------------------------------------------------------------ */
 
-	s = macpath + 1;		// 1 Byte fuer Laenge lassen
-	*s++ = '/';				// alle Pfade sind Mac-relativ
+	s = macpath /* + 1 */;		// 1 Byte fuer Laenge lassen
+//	*s++ = '/';				// alle Pfade sind Mac-relativ
 	t = (unsigned char *) pathname;
 	u = s;
 	while (*pathname)
@@ -1340,7 +1347,7 @@ INT32 CMacXFS::xfs_path2DD
 			}
 			t = (unsigned char *) pathname;	// letztes Element Atari
 			u = s;						// letztes Element Mac ohne ':'
-			*s++ = ':';
+			*s++ = '/';
 		}
 		else
 		if (c == ':')
@@ -1372,18 +1379,20 @@ INT32 CMacXFS::xfs_path2DD
 		}
 	}
 
-	sp((char *) macpath);
 #if 0
-	/* Jetzt ist der Pfad in einen Mac-Pfad umgewandelt.	*/
+	sp((char *) macpath);
+#endif
+    /* Jetzt ist der Pfad in einen Mac-Pfad umgewandelt.	*/
 	/* Wir versuchen zunaechst, die dirID mit nur		*/
 	/* einem Aufruf zu bestimmen						*/
 	/* ---------------------------------------------------	*/
 
+#if 0
 	if ((rel_dd->vRefNum == -32768) && (rel_dd->dirID == 0))	// Mac-Root
 	{
-		if (!strcmp((char *) (macpath + 1), ":"))					// noch Mac-Root
+		if (!strcmp((char *) (macpath + 1), "/"))					// noch Mac-Root
 		{
-			pb.hFileInfo.ioFlAttrib = 0x10;
+//			pb.hFileInfo.ioFlAttrib = 0x10;
 			reldir = rel_dd->dirID;
 			vRefNum = rel_dd->vRefNum;
 			goto giveback;
@@ -1402,12 +1411,21 @@ INT32 CMacXFS::xfs_path2DD
 		}
 //		DebugStr(macpath);
 	}
-	err = FSMakeFSSpec(vRefNum, reldir, (unsigned char *) macpath, &fs);
+#endif
+    CFURLRef base = _ddMap[indexFrom(vRefNum, reldir)];
+    assert(base != NULL);
+    CFURLRef url = CFURLCreateAbsoluteURLWithBytes(kCFAllocatorDefault, macpath, strlen((char *)macpath),  kCFStringEncodingISOLatin1, base, false);
+    
+    assert(url != NULL);
+    
+    
+#if 0
+    err = FSMakeFSSpec(vRefNum, reldir, (unsigned char *) macpath, &fs);
 
 	/* Wenn das Verzeichnis nicht gefunden wurde, kann	*/
 	/* es sein, dass eines der Verzeichnisse ein Alias ist.*/
 	/* ---------------------------------------------------	*/
-
+    
 	if (err == dirNFErr)
 	{
 		doserr = MakeFSSpecManually(vRefNum, reldir, (char *) macpath, &fs);
@@ -1421,9 +1439,10 @@ INT32 CMacXFS::xfs_path2DD
 
 	if (err)
 		goto was_doserr;
+#endif
+
 #if 0
 	vRefNum = fs.vRefNum;
-#endif
 	/* Wir holen uns jetzt die Informationen ueber das	*/
 	/* letzte Pfadelement.							*/
 	/* ---------------------------------------------------	*/
@@ -1472,10 +1491,11 @@ INT32 CMacXFS::xfs_path2DD
 	}
 
 	reldir = pb.hFileInfo.ioDirID;
-
+#endif
 	giveback:
-	if (mode)                                       /* Verzeichnis */
+    if (mode)                                       /* Verzeichnis */
 	{
+#if 0
 		if (!(pb.hFileInfo.ioFlAttrib & 0x10))
 			return(EPTHNF);                         /* kein SubDir */
 		*restpfad = pathname + strlen(pathname);     /* kein Restpfad */
@@ -1499,17 +1519,19 @@ INT32 CMacXFS::xfs_path2DD
 				reldir = 0;
 			}
 		}
+#endif
 	}
 	else
 	{
 		*restpfad = (char *) t;                               /* Restpfad */
 	}
 
-	dd->dirID = reldir;
-	dd->vRefNum = vRefNum;
+    unsigned long index = indexForCFURL(url);
+    CFRelease(url);
+	dd->dirID = indexToDirID(index);
+    dd->vRefNum = indexToVref(index);;
 
 //	return(reldir);
-#endif
     return(E_OK);
 }
 
@@ -1733,7 +1755,7 @@ doit:
 	return(E_OK);
 }
 
-
+#endif
 /*************************************************************
 *
 * Durchsucht ein Verzeichnis und merkt den Suchstatus
@@ -1748,9 +1770,13 @@ INT32 CMacXFS::xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name,
 {
 	if (drv_changed[drv])
 		return(E_CHNG);
+#if 0
 	if (!drv_fsspec[drv].vRefNum)
 		return(EDRIVE);
-
+#endif
+    if(xfs_path[drv] == NULL)
+        return EDRIVE;
+    
 //	DebugInfo("CMacXFS::xfs_sfirst(%s, attrib = %d)", name, (int) attrib);
 
 	/* Unschoenheit im Kernel ausbügeln: */
@@ -1813,7 +1839,7 @@ INT32 CMacXFS::xfs_snext(UINT16 drv, MAC_DTA *dta)
 		err = ENMFIL;
 	return(err);
 }
-
+#if 0
 
 /*************************************************************
 *
@@ -4374,7 +4400,6 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 #endif
 			break;
 		}
-#if 0
 		case 5:
 		{
 			struct sfirstparm
@@ -4395,7 +4420,7 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-
+#if 0
 		case 6:
 		{
 			struct snextparm

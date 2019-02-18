@@ -28,6 +28,7 @@
 #ifndef _MACXFS_H_INCLUDED_
 #define _MACXFS_H_INCLUDED_
 
+#include <map>
 // System-Header
 /*
 #include <aliases.h>
@@ -92,6 +93,46 @@ class CMacXFS
 			bool longnames,
 			bool reverseDirOrder);
    private:
+    
+    unsigned long _nextDdIndex;
+    inline unsigned long GetNextDdIndex()
+    {
+        assert (_nextDdIndex < 0xFFFFFFFFFFFF);
+        return ++_nextDdIndex;
+    }
+    
+    inline uint16_t indexToVref(unsigned long ndx) { return (ndx >> 32) & 0xFFFF; }
+    inline uint32_t indexToDirID(unsigned long ndx) { return (ndx & 0xFFFFFFFF); }
+
+    inline unsigned long indexFrom(uint16_t vref, uint32_t dirID)
+    {
+        return ((unsigned long)vref << 32) | dirID;
+    }
+    
+    std::map<unsigned long, CFURLRef> _ddMap;
+    std::map<CFURLRef, unsigned long> _ddMapInvert;
+
+    unsigned long indexForCFURL(CFURLRef url)
+    {
+        unsigned long ndx;
+        std::map<CFURLRef, unsigned long>::iterator it;
+        
+        it = _ddMapInvert.find(url);
+        if(it != _ddMapInvert.end())
+        {
+            /* Already mapped */
+            return it->second;
+        }
+     
+        /* retain url -- should we do this twice? */
+        CFRetain(url);
+        
+        ndx = GetNextDdIndex();
+        _ddMap[ndx] = url;
+        _ddMapInvert[url] = ndx;
+    
+        return ndx;
+    }
 
 	UInt32 m_AtariMemSize;
     typedef void PD;
@@ -199,8 +240,8 @@ typedef struct _mx_fd {
 
 	struct MXFSDD
 	{
-		long dirID;
-		short vRefNum;
+		int32_t dirID;
+		int16_t vRefNum;
 	};
 
    	#pragma options align=reset
@@ -278,10 +319,11 @@ typedef struct _mx_fd {
                   char **restpfad, MXFSDD *symlink_dd, char **symlink,
                    MXFSDD *dd,
                    UINT16 *dir_drive );
-#if 0
+    
 	INT32 xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name, MAC_DTA *dta, UINT16 attrib);
 	INT32 xfs_snext(UINT16 drv, MAC_DTA *dta);
-	INT32 xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
+#if 0
+    INT32 xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 				UINT16 omode, UINT16 attrib);
 	INT32 xfs_fdelete(UINT16 drv, MXFSDD *dd, char *name);
 	INT32 xfs_link(UINT16 drv, char *nam1, char *nam2,
