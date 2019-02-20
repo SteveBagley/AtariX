@@ -1789,7 +1789,7 @@ doit:
 	dta->mxdta.dta_time = CFSwapInt16HostToBig(dta->mxdta.dta_time);
 	dta->mxdta.dta_date = CFSwapInt16HostToBig(dta->mxdta.dta_date);
 #endif
-	nameto_8_3 (macname, (unsigned char *) dta->mxdta.dta_name, false, true);
+	nameto_8_3 ((unsigned char*)p->d_name, (unsigned char *) dta->mxdta.dta_name, false, true);
 	return(E_OK);
 }
 
