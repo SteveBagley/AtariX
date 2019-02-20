@@ -284,22 +284,27 @@ typedef struct _mx_fd {
 	MacXFSDrvType drv_type[NDRVS];
 	/* Zur Rueckgabe an den MagiC-Kernel: */
 	MX_SYMLINK mx_symlink;
-#if 0
 
 	// statische Funktionen
 
 	static char ToUpper(char c);
 	static void AtariFnameToMacFname(const unsigned char *src, unsigned char *dst);
 	static void MacFnameToAtariFname(const unsigned char *src, unsigned char *dst);
-	static void date_mac2dos( unsigned long macdate, UINT16 *time, UINT16 *date);
+#if 0
+    static void date_mac2dos( unsigned long macdate, UINT16 *time, UINT16 *date);
 	static void date_dos2mac( UINT16 time, UINT16 date, unsigned long *macdate);
+#endif
 	static int fname_is_invalid( char *name);
-	static INT32 cnverr (OSErr err);
+#if 0
+    static INT32 cnverr (OSErr err);
+#endif
+
 	static bool filename_match(char *muster, char *fname);
-	static bool conv_path_elem(const char *path, char *name);
-	static bool nameto_8_3 (const unsigned char *macname,
+    static bool conv_path_elem(const char *path, char *name);
+    static bool nameto_8_3 (const unsigned char *macname,
 				unsigned char *dosname,
 				bool flg_longnames, bool toAtari);
+#if 0
 	static char *ps(char *s);
 #endif
 	static void sp(char *s);
@@ -322,9 +327,9 @@ typedef struct _mx_fd {
     
 	INT32 xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name, MAC_DTA *dta, UINT16 attrib);
 	INT32 xfs_snext(UINT16 drv, MAC_DTA *dta);
-#if 0
     INT32 xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 				UINT16 omode, UINT16 attrib);
+#if 0
 	INT32 xfs_fdelete(UINT16 drv, MXFSDD *dd, char *name);
 	INT32 xfs_link(UINT16 drv, char *nam1, char *nam2,
 	               MXFSDD *dd1, MXFSDD *dd2, UINT16 mode, UINT16 dst_drv);
@@ -363,10 +368,11 @@ typedef struct _mx_fd {
 	INT32 dev_putc( MAC_FD *f, UINT16 mode, INT32 val );
 
 	// Hilfsfunktionen
-
-	long cfss(int drv, long dirID, short vRefNum, unsigned char *name, FSSpec *fs,
+#endif
+	long cfss(int drv, long dirID, short vRefNum, unsigned char *name, /* FSSpec *fs, */ unsigned char *path,
 			bool fromAtari);
-	OSErr fsspec2DirID (int drv);
+#if 0
+    OSErr fsspec2DirID (int drv);
 //	OSErr cpath2DirID( int drv, char *cpath );
 	INT32 resolve_symlink( FSSpec *fs, UINT16 buflen, char *buf );
 	OSErr resAlias(AliasHandle alias,  FSSpec *gSpec, bool gOnlyMountedVols);
@@ -379,8 +385,10 @@ typedef struct _mx_fd {
 					FSSpec *fs);
 	char getArchiveMask (CInfoPBRec *pb);
 	Byte mac2DOSAttr (CInfoPBRec *pb);
+#endif
 	INT32 _snext(UINT16 drv, MAC_DTA *dta);
-	void cinfo_to_xattr( CInfoPBRec * pb, XATTR *xattr, UINT16 drv);
+#if 0
+    void cinfo_to_xattr( CInfoPBRec * pb, XATTR *xattr, UINT16 drv);
 	OSErr PathNameFromDirID( long dirid, short vrefnum,
 		char *fullpathname);
 	INT32 dospath2macpath( UINT16 drv, MXFSDD *dd,

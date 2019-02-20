@@ -38,6 +38,7 @@
 #include <machine/endian.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 // Programm-Header
 #include "Debug.h"
 #include "Globals.h"
@@ -147,7 +148,6 @@ void CMacXFS::Set68kAdressRange(UInt32 AtariMemSize)
 {
 	m_AtariMemSize = AtariMemSize;
 }
-#if 0
 
 /*****************************************************************
 *
@@ -169,7 +169,6 @@ char CMacXFS::ToUpper( char c )
 	return(c);
 }
 
-
 /*****************************************************************
 *
 *  (statisch) konvertiert Atari-Dateiname in Mac-Dateinamen und "vice versa"
@@ -182,13 +181,14 @@ void CMacXFS::AtariFnameToMacFname(const unsigned char *src, unsigned char *dst)
 		*dst++ = CTextConversion::Atari2MacFilename(*src++);
 	*dst = EOS;
 }
+
 void CMacXFS::MacFnameToAtariFname(const unsigned char *src, unsigned char *dst)
 {
 	while (*src)
 		*dst++ = CTextConversion::Mac2AtariFilename(*src++);
 	*dst = EOS;
 }
-
+#if 0
 
 /*****************************************************************
 *
@@ -269,7 +269,7 @@ void CMacXFS::date_dos2mac(UINT16 time, UINT16 date, unsigned long *macdate)
 	dt.year	= (short) (((date >> 9 ) & 0x7f) + 1980);
 	DateToSeconds(&dt, macdate);
 }
-
+#endif
 
 /*****************************************************************
 *
@@ -285,7 +285,7 @@ int CMacXFS::fname_is_invalid( char *name)
 	return(!(*name));			// Name besteht nur aus Punkten
 }
 
-
+#if 0
 /*****************************************************************
 *
 *  (statisch) konvertiert Mac-Fehlercodes in MagiC- Fehlercodes
@@ -333,7 +333,7 @@ INT32 CMacXFS::cnverr(OSErr err)
 	return(ERROR);
 }
 
-
+#endif
 /*********************************************************************
 *
 * (statisch)
@@ -426,7 +426,6 @@ bool CMacXFS::filename_match(char *muster, char *fname)
 *  wurde.
 *
 **********************************************************************/
-
 bool CMacXFS::conv_path_elem(const char *path, char *name)
 {
 	register int i;
@@ -489,7 +488,6 @@ bool CMacXFS::conv_path_elem(const char *path, char *name)
 
 	return(truncated);
 }
-
 
 /*************************************************************
 *
@@ -583,7 +581,7 @@ bool CMacXFS::nameto_8_3 (const unsigned char *macname,
 	return(truncated);
 }
 
-
+#if 0
 /*************************************************************
 *
 * (statisch)
@@ -614,7 +612,6 @@ void CMacXFS::sp(char *s)
 {
 	s[0] = (char) strlen(s+1);
 }
-#if 0
 
 /*************************************************************
 *
@@ -632,33 +629,43 @@ long CMacXFS::cfss
 	long dirID,
 	short vRefNum,
 	unsigned char *name,
-	FSSpec *fs,
+/*	FSSpec *fs, */
+    unsigned char *path,
 	bool fromAtari
 )
 {
+    unsigned char filename[64];
+    unsigned char *p;
+#if 0
 	if (!drv_fsspec[drv].vRefNum)		// Abfrage eigentlich unnoetig
 		return(EDRIVE);
+#endif
 
-	fs->vRefNum = vRefNum;
-	fs->parID = dirID;
+    CFURLRef url = _ddMap[indexFrom(vRefNum, dirID)];
+    
+    
 	if (drv_longnames[drv])
 	{
 		// copy up to 62 characters and nul-terminate the destination
-		strlcpy((char *) fs->name + 1, (char *) name, sizeof(fs->name) - 1);
+		strlcpy((char *) filename, (char *) name, sizeof(filename) - 1);
 	}
 	else
 	{
 		// bzw. in 8+3 wandeln
-		nameto_8_3(name, fs->name + 1, drv_longnames[drv], false);
+		nameto_8_3(name, filename, drv_longnames[drv], false);
 	}
 
 	if (fromAtari)
 	{
 		// convert character set from Atari to MacOS
-		AtariFnameToMacFname(fs->name + 1, fs->name + 1);
+		AtariFnameToMacFname(filename, filename);
 	}
-
-	sp((char *) fs->name);
+    
+    CFURLGetFileSystemRepresentation(url, true, (UInt8*)path, 512);
+    p = path + strlen((char*)path);
+    *p++ = '/';
+    strcpy((char*)p, (char *)filename);
+//	sp((char *) fs->name);
 
 	return(E_OK);
 }
@@ -671,7 +678,7 @@ long CMacXFS::cfss
 * Das erste Zeichen des Pfads muss frei sein.
 *
 *************************************************************/
-
+#if 0
 OSErr CMacXFS::fsspec2DirID(int drv)
 {
 	OSErr err;
@@ -1575,26 +1582,34 @@ Byte CMacXFS::mac2DOSAttr (CInfoPBRec *pb)
 * Aliase werden dereferenziert.
 *
 *************************************************************/
+#endif
 
 INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 {
-	Str255 VolumeName;
-	HVolumeParam pbh;
+#if 0
+//	Str255 VolumeName;
+//	HVolumeParam pbh;
 	FSSpec fs;		/* fuer Aliase */
 	CInfoPBRec pb;
+#endif
 	INT32 doserr;
 	OSErr err;
 	unsigned char macname[256];		// Pascalstring Mac-Dateiname
 	char atariname[256];			// C-String Atari-Dateiname (lang)
 	unsigned char dosname[14], cmpname[14];	// intern, 8+3
 	bool first = !drv_rvsDirOrder[drv] && !drv_readOnly[drv];
+    CFURLRef url;
+    DIR *dir;
+    struct dirent *p;
+    char path[512];
 
-
+    
+    
 	DebugInfo("CMacXFS::_snext() -- pattern = %.11s", dta->macdta.sname);
+#if 0
 
 	if (!drv_fsspec[drv].vRefNum)    /* ungueltig */
 		return(EDRIVE);
-
 	if ((dta->macdta.vRefNum == -32768) && (dta->macdta.dirID == 0))	// Mac-Root
 	{
 		pbh.ioNamePtr = VolumeName;
@@ -1627,27 +1642,46 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 		dta->macdta.sname[0] = EOS;                  /* DTA ungueltig machen */
 		return(ENMFIL);
 	}
-
+#endif
+    
+     url = _ddMap[indexFrom(dta->macdta.vRefNum, dta->macdta.dirID)];
+    CFURLGetFileSystemRepresentation(url, true, (UInt8*)path, 512);
+    
+    dir = opendir(path);
+    /* This is undocumented whether it will work!!! */
+    seekdir(dir, dta->macdta.index);
+    
 	/* suchen */
 	/* ------ */
 
-	pb.hFileInfo.ioNamePtr = macname;
+#if 0
+    pb.hFileInfo.ioNamePtr = macname;
+#endif
 	do
 	{
 		again:
 
 		/* Ende des Verzeichnisses erreicht (index == 0):	*/
 		/* --------------------------------------------	*/
-
+#if 0
 		if (dta->macdta.index == 0)
 		{
 			dta->macdta.sname[0] = EOS;                  /* DTA ungueltig machen */
 			return(EFILNF);
 		}
-
+#endif
 		/* Verzeichniseintrag (PBREC) lesen.		*/
-		/* --------------------------------	*/ 
+		/* --------------------------------	*/
+        
+        p = readdir(dir);
+        if(p == NULL)
+        {
+            closedir(dir);
+            return EFILNF;
+        }
+        dta->macdta.index = telldir(dir);
     
+#if 0
 		pb.hFileInfo.ioVRefNum = dta->macdta.vRefNum;
 		pb.hFileInfo.ioFDirIndex = (short) dta->macdta.index;
 		pb.hFileInfo.ioDirID = dta->macdta.dirID;
@@ -1670,13 +1704,13 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 		{
 			dta->macdta.index++;
 		}
-
+#endif
 		/* Datei gefunden, passen Name und Attribut ? */
 		/* geht nicht wegen Compilerfehler in 1.2.2: */
 		/* conv_path_elem(cs(macname), dosname); */
 
-		macname[macname[0] + 1] = EOS;
-		MacFnameToAtariFname(macname + 1, (unsigned char *) atariname);	// Umlaute wandeln
+//		macname[macname[0] + 1] = EOS;
+		MacFnameToAtariFname((const unsigned char *)p->d_name, (unsigned char *) atariname);	// Umlaute wandeln
 /*
 		if (atariname[0] == '.')
 			DebugInfo("CMacXFS::_snext() -- name = %s", atariname);
@@ -1693,7 +1727,7 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 		/* dereferenzieren, damit der Attributvergleich	*/
 		/* moeglich ist (Attr aus Datei, nicht Alias!)	*/
 		/* -----------------------------------------	*/
-
+#if 0
 		if (pb.hFileInfo.ioFlFndrInfo.fdFlags & kIsAlias)
 		{
 			DebugInfo("CMacXFS::_snext() -- dereference Alias", atariname);
@@ -1720,12 +1754,13 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 			}
 		}
 
-		dosname[11] = mac2DOSAttr(&pb);
-		
+        dosname[11] = mac2DOSAttr(&pb);
+#endif
+
 		if (first)
 		{
 			first = false;
-			if (nameto_8_3(macname + 1, cmpname, false, true))
+			if (nameto_8_3(macname, cmpname, false, true))
 				goto again;		// mußte Dateinamen kürzen!
 
 			if (!strncmp (dta->mxdta.dta_name, (char *) cmpname, 12))
@@ -1733,6 +1768,7 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 		}
 	}
 	while (!filename_match(dta->macdta.sname, (char *) dosname));
+    closedir(dir);
 
 	/* erfolgreich: DTA initialisieren. Daten liegen nur in der Data fork */
 	/* ------------------------------------------------------------------ */
@@ -1742,6 +1778,8 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 //		--dta->macdta.index;		// letzten Eintrag das nächste Mal nochmal lesen!
 
 doit:
+#if 0
+    struct stat file;
 	dta->mxdta.dta_attribute = (char) dosname[11];
 	dta->mxdta.dta_len = CFSwapInt32HostToBig((UINT32) ((dosname[11] & F_SUBDIR) ? 0L : pb.hFileInfo.ioFlLgLen));
 	/* Datum ist ioFlMdDat bzw. ioDrMdDat */
@@ -1750,12 +1788,11 @@ doit:
 
 	dta->mxdta.dta_time = CFSwapInt16HostToBig(dta->mxdta.dta_time);
 	dta->mxdta.dta_date = CFSwapInt16HostToBig(dta->mxdta.dta_date);
-
-	nameto_8_3 (macname + 1, (unsigned char *) dta->mxdta.dta_name, false, true);
+#endif
+	nameto_8_3 (macname, (unsigned char *) dta->mxdta.dta_name, false, true);
 	return(E_OK);
 }
 
-#endif
 /*************************************************************
 *
 * Durchsucht ein Verzeichnis und merkt den Suchstatus
@@ -1768,6 +1805,9 @@ doit:
 INT32 CMacXFS::xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name,
                     MAC_DTA *dta, UINT16 attrib)
 {
+    DIR *dir;
+    char path[512];
+    
 	if (drv_changed[drv])
 		return(E_CHNG);
 #if 0
@@ -1781,14 +1821,14 @@ INT32 CMacXFS::xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name,
 
 	/* Unschoenheit im Kernel ausbügeln: */
 	dta->mxdta.dta_drive = (char) drv;
-
 	conv_path_elem(name, dta->macdta.sname);	// Suchmuster -> DTA
 	dta->mxdta.dta_name[0] = 0;		//  gefundenen Namen erstmal löschen
 	dta->macdta.sattr = (char) attrib;			// Suchattribut
 	dta->macdta.dirID = dd->dirID;
 	dta->macdta.vRefNum = dd->vRefNum;
 
-	if (drv_rvsDirOrder[drv])
+#if 0
+    if (drv_rvsDirOrder[drv])
 	{
 		CInfoPBRec pb;
 		//Str255 name2;
@@ -1810,7 +1850,15 @@ INT32 CMacXFS::xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name,
 	{
 		dta->macdta.index = (long) 1;				// erste Datei
 	}
-	
+#endif
+    CFURLRef url = _ddMap[indexFrom(dta->macdta.vRefNum, dta->macdta.dirID)];
+    CFURLGetFileSystemRepresentation(url, true, (UInt8*)path, 512);
+    
+    dir = opendir(path);
+    dta->macdta.index = telldir(dir);
+    closedir(dir);
+    
+ //   dta->macdta.index = (long) 1;                // erste Datei
 	return(_snext(drv, dta));
 }
 
@@ -1829,9 +1877,10 @@ INT32 CMacXFS::xfs_snext(UINT16 drv, MAC_DTA *dta)
 
 	if (drv_changed[drv])
 		return(E_CHNG);
+#if 0
 	if (!drv_fsspec[drv].vRefNum)
 		return(EDRIVE);
-
+#endif
 	if (!dta->macdta.sname[0])
 		return(ENMFIL);
 	err = _snext(drv, dta);
@@ -1839,7 +1888,6 @@ INT32 CMacXFS::xfs_snext(UINT16 drv, MAC_DTA *dta)
 		err = ENMFIL;
 	return(err);
 }
-#if 0
 
 /*************************************************************
 *
@@ -1863,14 +1911,19 @@ INT32 CMacXFS::xfs_snext(UINT16 drv, MAC_DTA *dta)
 INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 			UINT16 omode, UINT16 attrib)
 {
-	FSSpec fs;
+#if 0
+    FSSpec fs;
 	FInfo finfo;
-	OSErr err;
+#endif
+    OSErr err;
 	INT32 doserr;
 	SignedByte perm;
 	/* HParamBlockRec pb; */
 	short refnum;
 	unsigned char dosname[20];
+    char path[1024];;
+    int unix_perm =0644;
+    int mode;
 
 
 #if DEBUG_68K_EMU
@@ -1892,9 +1945,11 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 
 	if (drv_changed[drv])
 		return(E_CHNG);
+#if 0
 	if (!drv_fsspec[drv].vRefNum)
 		return(EDRIVE);
-
+#endif
+    
 	if (fname_is_invalid(name))
 		return(EACCDN);
 
@@ -1907,14 +1962,15 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 
 	// Note that dirID and vRefNum always are in the host's natural byte order,
 	// so we do not have to endian-convert here
-	cfss(drv, dd->dirID, dd->vRefNum, (unsigned char *) name, &fs, true);
+	cfss(drv, dd->dirID, dd->vRefNum, (unsigned char *) name, (unsigned char *)path, true);
 
-	/* Datei erstellen, wenn noetig */
+    /* Datei erstellen, wenn noetig */
 	/* ---------------------------- */
 
 	if (omode & O_CREAT)
 	{
-		OSType creator, type;
+#if 0
+        OSType creator, type;
 		creator = MyCreator;
 		type = 'TEXT';
 		GetTypeAndCreator ((char*) fs.name + 1, &type, &creator);
@@ -1943,6 +1999,7 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 
 		if (err)
 			return(cnverr(err));
+#endif
 	}
 
 
@@ -1986,10 +2043,17 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 		perm = fsRdWrShPerm;
 	}
 
+    /* BIG HACK -- no writing */
+    mode = omode;
+//    if(omode & (_ATARI_
+    refnum = open(path, mode, unix_perm);
+    
+
 	/* Bevor wir irgendetwas treiben, muessen wir feststellen,	*/
 	/* ob es sich bei der Datei um einen Alias handelt!		*/
 	/* ------------------------------------------------------ */
-
+#if 0
+    
 	err = FSpGetFInfo (&fs, &finfo);
 	if (err)
 		return(cnverr(err));
@@ -2032,7 +2096,7 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 			return(cnverr(err));
 		}
 	}
-
+#endif
 #if DEBUG_68K_EMU
 	if (trigger == 1)
 	{
@@ -2041,10 +2105,10 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 	}
 #endif
 
-	return CFSwapInt16HostToBig((unsigned short) (refnum));
+    return CFSwapInt16HostToBig((unsigned short) (refnum));
 }
 
-
+#if 0
 /*************************************************************
 *
 * Löscht eine Datei.
@@ -4389,10 +4453,11 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					(UINT16 *) (AdrOffset68k + CFSwapInt32BigToHost(ppath2DDparm->dir_drive))
 					);
 
-#if 0
-            *((char **) (AdrOffset68k + CFSwapInt32BigToHost(ppath2DDparm->restpfad))) = (char *) CFSwapInt32HostToBig(((UINT32) restpath) - ((UINT32) AdrOffset68k));
-			*((char **) (AdrOffset68k + CFSwapInt32BigToHost(ppath2DDparm->symlink))) = (char *) CFSwapInt32HostToBig(((UINT32) symlink) - ((UINT32) AdrOffset68k));
-#endif
+            /* Writing back Atari addresses into Atari RAM, we currently have Mac addresses */
+            /* Need to write 32-bit pointers back in subtracting offset) */
+            
+            *((uint32_t*) (AdrOffset68k + CFSwapInt32BigToHost(ppath2DDparm->restpfad))) = (uint32_t)CFSwapInt32HostToBig(((size_t) restpath) - ((size_t) AdrOffset68k));
+            *((uint32_t*) (AdrOffset68k + CFSwapInt32BigToHost(ppath2DDparm->symlink))) = (uint32_t)CFSwapInt32HostToBig(((size_t) symlink) - ((size_t) AdrOffset68k));
 #ifdef DEBUG_VERBOSE
 			__dump((const unsigned char *) ppath2DDparm, sizeof(*ppath2DDparm));
 			if (doserr >= 0)
@@ -4420,7 +4485,6 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-#if 0
 		case 6:
 		{
 			struct snextparm
@@ -4435,7 +4499,7 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-	
+
 		case 7:
 		{
 			struct fopenparm
@@ -4456,7 +4520,7 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-			
+#if 0
 		case 8:
 		{
 			struct fdeleteparm
