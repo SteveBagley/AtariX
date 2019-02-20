@@ -1789,6 +1789,7 @@ doit:
 	dta->mxdta.dta_time = CFSwapInt16HostToBig(dta->mxdta.dta_time);
 	dta->mxdta.dta_date = CFSwapInt16HostToBig(dta->mxdta.dta_date);
 #endif
+    dta->mxdta.dta_len = CFSwapInt32HostToBig(0x1234);
 	nameto_8_3 ((unsigned char*)p->d_name, (unsigned char *) dta->mxdta.dta_name, false, true);
 	return(E_OK);
 }
@@ -3821,15 +3822,15 @@ OSErr CMacXFS::f_2_cinfo( MAC_FD *f, CInfoPBRec *pb, char *fname)
 	err = PBGetCatInfoSync (pb);
 	return(err);
 }
-
+#endif
 
 INT32 CMacXFS::dev_close( MAC_FD *f )
 {
-	FCBPBRec fpb;
+//	FCBPBRec fpb;
 	OSErr err;
 	char fname[64];
-	CInfoPBRec pb;
-	IOParam ipb;
+//	CInfoPBRec pb;
+//	IOParam ipb;
 	UInt16 refcnt;
 
 
@@ -3838,7 +3839,8 @@ INT32 CMacXFS::dev_close( MAC_FD *f )
 		return(EINTRN);
 
 	// FCB der Datei ermitteln
-	fpb.ioFCBIndx = 0;
+#if 0
+    fpb.ioFCBIndx = 0;
 	fpb.ioVRefNum = 0;
 	fpb.ioNamePtr = (unsigned char*)fname;
 	fpb.ioRefNum = f->refnum;
@@ -3848,7 +3850,7 @@ INT32 CMacXFS::dev_close( MAC_FD *f )
 		FSClose(f->refnum);
 		return(cnverr(err));
 	}
-
+#endif
 	refcnt--;
 	f->fd.fd_refcnt = CFSwapInt16HostToBig(refcnt);
 	if (!refcnt)
@@ -3856,7 +3858,7 @@ INT32 CMacXFS::dev_close( MAC_FD *f )
 
 	/* Datum und Uhrzeit koennen erst nach Schliessen gesetzt werden */
 	/* ------------------------------------------------------------- */
-
+#if 0
 		if (f->mod_time_dirty)
 		{
 			err = FSClose(f->refnum);
@@ -3897,17 +3899,22 @@ INT32 CMacXFS::dev_close( MAC_FD *f )
 		}
 		else
 			err = FSClose(f->refnum);
+#endif
+        close(f->refnum);
 	}
 	else
 	{
-		ipb.ioRefNum = f->refnum;
+#if 0
+        ipb.ioRefNum = f->refnum;
 		err = PBFlushFileSync ((ParmBlkPtr) &ipb);
-	}
+#endif
+        fsync(f->refnum);
+    }
 
 //	if (!err && FlushWhenClosing)
 //		FlushVol (nil, fpb.ioVRefNum);
-
-	return(cnverr(err));
+    return E_OK;
+//	return(cnverr(err));
 }
 
 /*
@@ -3993,16 +4000,19 @@ INT32 CMacXFS::dev_read( MAC_FD *f, INT32 count, char *buf )
 	}
 #endif
 	lcount = (long) count;
+    lcount = read(f->refnum, buf, count);
+#if 0
 	err = FSRead(f->refnum, &lcount, buf);
 	if (err == eofErr)
 		err = 0;				/* nur Teil eingelesen, kein Fehler! */
 	else
 	if (err)
-		return(cnverr(err));
+        return(cnverr(err));
+#endif
 	return((INT32) lcount);
 }
 
-
+#if 0
 INT32 CMacXFS::dev_write( MAC_FD *f, INT32 count, char *buf )
 {
 #ifdef DEMO
@@ -4921,7 +4931,6 @@ INT32 CMacXFS::XFSFunctions(UINT32 param, unsigned char *AdrOffset68k)
 	return(doserr);
 }
 
-#if 0
 /*************************************************************
 *
 * Dispatcher für Dateitreiber
@@ -4972,7 +4981,7 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-			
+#if 0
 		case 2:
 		{
 			struct devwriteparm
@@ -5008,7 +5017,7 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-			
+#endif
 		case 4:
 		{
 			struct devseekparm
@@ -5025,7 +5034,7 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-			
+#if 0
 		case 5:
 		{
 			struct devdatimeparm
@@ -5110,7 +5119,7 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 					);
 			break;
 		}
-			
+#endif
 		default:
 			doserr = EINVFN;
 			break;
@@ -5120,10 +5129,8 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 #endif
 	return(doserr);
 }
-#endif
 
    	#pragma options align=reset
-
 
 /*************************************************************
 *

@@ -1501,9 +1501,7 @@ Reinstall the application.
  
 	pMacXSysHdr->MacSys_xfs.tc = (ThunkedCallbackType*)&ThunkedCallbackS<CMacXFS ,&CMacXFS::XFSFunctions>;
 	pMacXSysHdr->MacSys_xfs.self = &m_MacXFS;
-#if 0
-	pMacXSysHdr->MacSys_xfs_dev.m_Callback = &CMacXFS::XFSDevFunctions;
-#endif
+	pMacXSysHdr->MacSys_xfs_dev.tc = (ThunkedCallbackType*)&ThunkedCallbackS<CMacXFS, &CMacXFS::XFSDevFunctions>;
 	pMacXSysHdr->MacSys_xfs_dev.self = &m_MacXFS;
     pMacXSysHdr->MacSys_drv2devcode.tc = (ThunkedCallbackType*)&ThunkedCallbackS<CMacXFS ,&CMacXFS::Drv2DevCode>;
     pMacXSysHdr->MacSys_drv2devcode.self = &m_MacXFS;

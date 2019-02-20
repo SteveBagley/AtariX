@@ -74,9 +74,7 @@ class CMacXFS
 	~CMacXFS();
 	void Set68kAdressRange(UInt32 AtariMemSize);
 	INT32 XFSFunctions( UINT32 params, unsigned char *AdrOffset68k );
-#if 0
     INT32 XFSDevFunctions( UINT32 params, unsigned char *AdrOffset68k );
-#endif
 	INT32 Drv2DevCode( UINT32 params, unsigned char *AdrOffset68k );
 #if 0
     INT32 RawDrvr( UINT32 params, unsigned char *AdrOffset68k );
@@ -355,9 +353,10 @@ typedef struct _mx_fd {
 	INT32 xfs_dcntl(UINT16 drv, MXFSDD *dd, char *name, UINT16 cmd, void *pArg, unsigned char *AdrOffset68k);
 
 	// Gerätetreiber
-
+#endif
 	INT32 dev_close( MAC_FD *f );
 	INT32 dev_read( MAC_FD *f, INT32 count, char *buf );
+#if 0
 	INT32 dev_write( MAC_FD *f, INT32 count, char *buf );
 	INT32 dev_stat( MAC_FD *f, void *unsel, UINT16 rwflag, INT32 apcode );
 	INT32 dev_seek( MAC_FD *f, INT32 pos, UINT16 mode );
