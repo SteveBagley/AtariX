@@ -1,6 +1,8 @@
 # Atari X
 <img alt="Logo" src="src/AtariX-MT/AtariX/ApplicationIcon.png" width="80">
 
+Note this my work in progress edits to try and get this to run on 64-bit macOS -- it does not work as you'd expect!
+
 An Atari ST/TT emulator for **macOS**.
 
 This is kind of successor of *MagiC* for Atari, *MagicMac* for Classic Mac OS and *MagicMac X* for MacOS X.
