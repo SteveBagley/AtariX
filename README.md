@@ -2,6 +2,7 @@
 <img alt="Logo" src="src/AtariX-MT/AtariX/ApplicationIcon.png" width="80">
 
 Note this my work in progress edits to try and get this to run on 64-bit macOS -- it does not work as you'd expect!
+Andreas Kromke's original source code can be found at https://gitlab.com/AndreasK/AtariX
 
 An Atari ST/TT emulator for **macOS**.
 
