@@ -987,11 +987,13 @@ void EmulationRunner::EventLoop(void)
 							{
 								// get clipboard text from SDL, hopefully in UTF-8
 								clipboardData = (uint8_t *) SDL_GetClipboardText();
+								/*
 								if (clipboardData)
 								{
 									CClipboard::Mac2Atari(clipboardData);
 									SDL_free(clipboardData);
 								}
+								 */
 							}
 							// Now catch keyboard events
 //							SDL_KeyboardActivate(1);

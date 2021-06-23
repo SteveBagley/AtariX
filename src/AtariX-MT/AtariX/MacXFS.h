@@ -312,8 +312,8 @@ typedef struct _mx_fd {
 	// XFS-Aufrufe
 
 	INT32 xfs_sync(UINT16 drv);
-	void xfs_pterm (PD *pd);
 #endif
+	void xfs_pterm (PD *pd);
 	INT32 xfs_drv_open (UINT16 drv, MXFSDD *dd, INT32 flg_ask_diskchange);
 #if 0
 	INT32 xfs_drv_close(UINT16 drv, UINT16 mode);
@@ -331,14 +331,18 @@ typedef struct _mx_fd {
 	INT32 xfs_fdelete(UINT16 drv, MXFSDD *dd, char *name);
 	INT32 xfs_link(UINT16 drv, char *nam1, char *nam2,
 	               MXFSDD *dd1, MXFSDD *dd2, UINT16 mode, UINT16 dst_drv);
+#endif
 	INT32 xfs_xattr(UINT16 drv, MXFSDD *dd, char *name,
 					XATTR *xattr, UINT16 mode);
+#if 0
 	INT32 xfs_attrib(UINT16 drv, MXFSDD *dd, char *name, UINT16 rwflag, UINT16 attr);
 	INT32 xfs_fchown(UINT16 drv, MXFSDD *dd, char *name, UINT16 uid, UINT16 gid);
 	INT32 xfs_fchmod(UINT16 drv, MXFSDD *dd, char *name, UINT16 fmode);
 	INT32 xfs_dcreate(UINT16 drv, MXFSDD *dd, char *name);
 	INT32 xfs_ddelete(UINT16 drv, MXFSDD *dd);
+#endif
 	INT32 xfs_DD2name(UINT16 drv, MXFSDD *dd, char *buf, UINT16 bufsiz);
+#if 0
 	INT32 xfs_dopendir(MAC_DIRHANDLE *dirh, UINT16 drv, MXFSDD *dd, UINT16 tosflag);
 	INT32 xfs_dreaddir(MAC_DIRHANDLE *dirh, UINT16 drv,
 			UINT16 size, char *buf, XATTR *xattr, INT32 *xr);
@@ -363,9 +367,11 @@ typedef struct _mx_fd {
 	INT32 dev_seek( MAC_FD *f, INT32 pos, UINT16 mode );
 #if 0
 	INT32 dev_datime( MAC_FD *f, UINT16 d[2], UINT16 rwflag );
+#endif
 	INT32 dev_ioctl( MAC_FD *f, UINT16 cmd, void *buf );
 	INT32 dev_getc( MAC_FD *f, UINT16 mode );
 	INT32 dev_getline( MAC_FD *f, char *buf, INT32 size, UINT16 mode );
+#if 0
 	INT32 dev_putc( MAC_FD *f, UINT16 mode, INT32 val );
 
 	// Hilfsfunktionen
