@@ -840,7 +840,9 @@ void EmulationRunner::_OpenWindow(void)
 	
 	MXVDI_PIXMAP *pixmap = &m_EmulatorScreen.m_PixMap;
 	
-	pixmap->baseAddr      = (UINT8 *) m_sdl_atari_surface->pixels;		// target address, filled in by emulator
+//	pixmap->baseAddr      = (UINT8 *) m_sdl_atari_surface->pixels;		// target address, filled in by emulator
+	pixmap->baseAddr32    = (UINT32) ((size_t)m_sdl_atari_surface->pixels);		// target address, filled in by emulator
+	m_EmulatorScreen.hostScreen = m_sdl_atari_surface->pixels; /* Hack Hack Hack */
 	pixmap->rowBytes      = m_sdl_atari_surface->pitch | 0x8000;	// 0x4000 and 0x8000 are flags
 	pixmap->bounds_top    = 0;
 	pixmap->bounds_left   = 0;
@@ -854,7 +856,7 @@ void EmulationRunner::_OpenWindow(void)
     pixmap->cmpCount      = cmpCount;					// components: 3 = red, green, blue, 1 = monochrome
     pixmap->cmpSize       = cmpSize;					// True colour: 8 bits per component
 	pixmap->planeBytes    = planeBytes;					// offset to next plane
-	pixmap->pmTable       = NULL;
+	pixmap->pmTable32       = NULL;
 	pixmap->pmReserved    = NULL;
 }
 

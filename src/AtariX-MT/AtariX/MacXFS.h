@@ -359,7 +359,9 @@ typedef struct _mx_fd {
 #if 0
 	INT32 dev_write( MAC_FD *f, INT32 count, char *buf );
 	INT32 dev_stat( MAC_FD *f, void *unsel, UINT16 rwflag, INT32 apcode );
+#endif
 	INT32 dev_seek( MAC_FD *f, INT32 pos, UINT16 mode );
+#if 0
 	INT32 dev_datime( MAC_FD *f, UINT16 d[2], UINT16 rwflag );
 	INT32 dev_ioctl( MAC_FD *f, UINT16 cmd, void *buf );
 	INT32 dev_getc( MAC_FD *f, UINT16 mode );

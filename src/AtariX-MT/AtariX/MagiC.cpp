@@ -108,8 +108,8 @@ extern "C"
 {
     /* SRB Hack */
      void *g_thunks[numThunkINDX];
-    CMagiC_CPPCCallback_INT g_callbackThunk[32];
-	int g_ctStride = sizeof(CMagiC_CPPCCallback_INT);
+//    CMagiC_CPPCCallback_INT g_callbackThunk[32];
+//	int g_ctStride = sizeof(CMagiC_CPPCCallback_INT);
 }
 
 /**********************************************************************
@@ -1196,8 +1196,8 @@ static void PixmapToBigEndian(MXVDI_PIXMAP *thePixMap)
 		DebugInfo("Experimentell: Bildspeicherzugriffe beim Atari umdrehen, wenn nicht 32 bit.");
 		bAtariVideoRamHostEndian = false;
 	}
-
-	thePixMap->baseAddr      = (UINT8 *) CFSwapInt32HostToBig((size_t) thePixMap->baseAddr);
+	thePixMap->baseAddr32    = (UINT32) CFSwapInt32HostToBig(thePixMap->baseAddr32);
+////	thePixMap->baseAddr      = (UINT8 *) CFSwapInt32HostToBig((size_t) thePixMap->baseAddr);
 	thePixMap->rowBytes      = CFSwapInt16HostToBig(thePixMap->rowBytes);
 	thePixMap->bounds_top    = CFSwapInt16HostToBig(thePixMap->bounds_top);
 	thePixMap->bounds_left   = CFSwapInt16HostToBig(thePixMap->bounds_left);
@@ -1231,7 +1231,8 @@ static void PixmapToBigEndian(MXVDI_PIXMAP *thePixMap)
 **********************************************************************/
 
 #if DEBUG_68K_EMU
-void _DumpAtariMem(const char *filename)
+#endif 
+extern "C" void _DumpAtariMem(const char *filename)
 {
 	if (pTheMagiC)
 		pTheMagiC->DumpAtariMem(filename);
@@ -1256,6 +1257,7 @@ void CMagiC::DumpAtariMem(const char *filename)
 	fwrite(m_RAM68k, 1, m_RAM68ksize, f);
 	fclose(f);
 }
+#if 0
 #endif
 
 
@@ -1372,8 +1374,9 @@ Assign more memory to the application using the Finder dialogue "Information"!
 	Adr68kVideo = m_RAM68ksize;
 	DebugInfo("68k-Videospeicher beginnt bei 68k-Adresse 0x%08x und ist %u Bytes groß.", Adr68kVideo, m_Video68ksize);
 	Adr68kVideoEnd = Adr68kVideo + m_Video68ksize;
-	m_pFgBuffer = (unsigned char *) m_pMagiCScreen->m_PixMap.baseAddr;
-
+//	m_pFgBuffer = (unsigned char *) m_pMagiCScreen->m_PixMap.baseAddr;
+//	m_pFgBuffer = (unsigned char *) m_pMagiCScreen->m_PixMap.baseAddr32;
+	m_pFgBuffer = (unsigned char *) m_pMagiCScreen->hostScreen;
 	UpdateAtariDoubleBuffer();
 
 	// Atari-Systemvariablen setzen
@@ -1391,7 +1394,8 @@ Assign more memory to the application using the Finder dialogue "Information"!
 	pAtari68kData = (Atari68kData *) (m_RAM68k + AtariMemtop);
 	pAtari68kData->m_PixMap = m_pMagiCScreen->m_PixMap;
 	// left und top scheinen nicht abgefragt zu werden, nur right und bottom
-	pAtari68kData->m_PixMap.baseAddr = (UINT8 *) Adr68kVideo;		// virtuelle 68k-Adresse
+//	pAtari68kData->m_PixMap.baseAddr = (UINT8 *) Adr68kVideo;		// virtuelle 68k-Adresse
+	pAtari68kData->m_PixMap.baseAddr32 = (UINT32) Adr68kVideo;		// virtuelle 68k-Adresse
 
 	#if !defined(__BIG_ENDIAN__)
 	PixmapToBigEndian(&pAtari68kData->m_PixMap);
@@ -1460,7 +1464,7 @@ Reinstall the application.
 	pMacXSysHdr->MacSys_Xcmd.self = pXCmd;
 
 	pMacXSysHdr->MacSys_PPCAddr =  CFSwapInt32HostToBig((size_t) m_RAM68k);
-	pMacXSysHdr->MacSys_VideoAddr =  CFSwapInt32HostToBig((size_t) m_pMagiCScreen->m_PixMap.baseAddr);
+	pMacXSysHdr->MacSys_VideoAddr =  CFSwapInt32HostToBig((size_t) m_pMagiCScreen->m_PixMap.baseAddr32);
 #define SetThunk(p,a,b) { g_thunks[AtariThunkIndex(a)] = (void*)b; p->a = AtariThunkIndex(a); }
     SetThunk(pMacXSysHdr, MacSys_gettime, AtariGettime);
 	SetThunk(pMacXSysHdr,MacSys_settime, AtariSettime);
@@ -1489,9 +1493,12 @@ Reinstall the application.
 	SetThunk(pMacXSysHdr,MacSys_SerWrite, AtariSerWrite);
 	SetThunk(pMacXSysHdr,MacSys_SerStat, AtariSerStat);
 	SetThunk(pMacXSysHdr,MacSys_SerIoctl, AtariSerIoctl);
+	pMacXSysHdr->MacSys_GetKeybOrMouse.tc = (ThunkedCallbackType*)&ThunkedCallback<CMagiC,&CMagiC::AtariGetKeyboardOrMouseData>;
+	pMacXSysHdr->MacSys_GetKeybOrMouse.self = this;
+
     
-    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariGetKeyboardOrMouseData;
-    g_callbackThunk[m_thunkIndex].m_thisptr = this;
+//    g_callbackThunk[m_thunkIndex].m_Callback = &CMagiC::AtariGetKeyboardOrMouseData;
+  //  g_callbackThunk[m_thunkIndex].m_thisptr = this;
 #if 0
     pMacXSysHdr->MacSys_GetKeybOrMouse.internal = &g_callbackThunk[m_thunkIndex];
     m_thunkIndex++;

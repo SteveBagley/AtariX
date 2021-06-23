@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/stat.h>
 // Programm-Header
 #include "Debug.h"
 #include "Globals.h"
@@ -1592,6 +1593,7 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 	FSSpec fs;		/* fuer Aliase */
 	CInfoPBRec pb;
 #endif
+	int i = 0;
 	INT32 doserr;
 	OSErr err;
 	unsigned char macname[256];		// Pascalstring Mac-Dateiname
@@ -1601,6 +1603,7 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
     CFURLRef url;
     DIR *dir;
     struct dirent *p;
+	struct stat st;
     char path[512];
 
     
@@ -1649,7 +1652,13 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
     
     dir = opendir(path);
     /* This is undocumented whether it will work!!! */
-    seekdir(dir, dta->macdta.index);
+	i = dta->macdta.index;
+	while(i > 0)
+	{
+		p = readdir(dir);
+		i--;
+	}
+//    seekdir(dir, dta->macdta.index);
     
 	/* suchen */
 	/* ------ */
@@ -1672,15 +1681,17 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 #endif
 		/* Verzeichniseintrag (PBREC) lesen.		*/
 		/* --------------------------------	*/
-        
+
         p = readdir(dir);
         if(p == NULL)
         {
             closedir(dir);
             return EFILNF;
         }
-        dta->macdta.index = telldir(dir);
-    
+		dta->macdta.index++;
+//        dta->macdta.index = telldir(dir);
+		
+		
 #if 0
 		pb.hFileInfo.ioVRefNum = dta->macdta.vRefNum;
 		pb.hFileInfo.ioFDirIndex = (short) dta->macdta.index;
@@ -1754,9 +1765,18 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 			}
 		}
 
-        dosname[11] = mac2DOSAttr(&pb);
+		strcat(path, "/");
+		strcat(path, p->d_name);
+		stat(path, &st);
+		
+		if(st.st_mode & st_mode)
+		{	
+			dosname[11] = F_SUBDIR;	
+		}
+//		dosname[11] = mac2DOSAttr(&pb)
+		
 #endif
-
+		
 		if (first)
 		{
 			first = false;
@@ -1778,8 +1798,17 @@ INT32 CMacXFS::_snext(UINT16 drv, MAC_DTA *dta)
 //		--dta->macdta.index;		// letzten Eintrag das nächste Mal nochmal lesen!
 
 doit:
+	strcat(path, "/");
+	strcat(path, p->d_name);
+	stat(path, &st);
+	if(st.st_mode & S_IFDIR)
+	{	
+		dosname[11] = F_SUBDIR;	
+	}
+	
+	dta->mxdta.dta_len = CFSwapInt32HostToBig((UINT32) ((dosname[11] & F_SUBDIR) ? 0L : st.st_size));
+
 #if 0
-    struct stat file;
 	dta->mxdta.dta_attribute = (char) dosname[11];
 	dta->mxdta.dta_len = CFSwapInt32HostToBig((UINT32) ((dosname[11] & F_SUBDIR) ? 0L : pb.hFileInfo.ioFlLgLen));
 	/* Datum ist ioFlMdDat bzw. ioDrMdDat */
@@ -1789,7 +1818,9 @@ doit:
 	dta->mxdta.dta_time = CFSwapInt16HostToBig(dta->mxdta.dta_time);
 	dta->mxdta.dta_date = CFSwapInt16HostToBig(dta->mxdta.dta_date);
 #endif
-    dta->mxdta.dta_len = CFSwapInt32HostToBig(0x1234);
+	
+	
+//	dta->mxdta.dta_len = CFSwapInt32HostToBig(0);
 	nameto_8_3 ((unsigned char*)p->d_name, (unsigned char *) dta->mxdta.dta_name, false, true);
 	return(E_OK);
 }
@@ -1856,7 +1887,7 @@ INT32 CMacXFS::xfs_sfirst(UINT16 drv, MXFSDD *dd, char *name,
     CFURLGetFileSystemRepresentation(url, true, (UInt8*)path, 512);
     
     dir = opendir(path);
-    dta->macdta.index = telldir(dir);
+	dta->macdta.index = 0;
     closedir(dir);
     
  //   dta->macdta.index = (long) 1;                // erste Datei
@@ -1915,15 +1946,16 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 #if 0
     FSSpec fs;
 	FInfo finfo;
-#endif
     OSErr err;
 	INT32 doserr;
+#endif
 	SignedByte perm;
 	/* HParamBlockRec pb; */
 	short refnum;
 	unsigned char dosname[20];
     char path[1024];;
-    int unix_perm =0644;
+
+	int unix_perm = 0644;
     int mode;
 
 
@@ -2045,9 +2077,26 @@ INT32 CMacXFS::xfs_fopen(char *name, UINT16 drv, MXFSDD *dd,
 	}
 
     /* BIG HACK -- no writing */
-    mode = omode;
+//    mode = omode;
 //    if(omode & (_ATARI_
-    refnum = open(path, mode, unix_perm);
+
+	/* OM_RPERM   EQU  1   // File is opened for reading
+	 OM_WPERM   EQU  2   // File is opened for writing
+	 OM_EXEC    EQU  4   // File is opened for execution
+	 OM_APPEND  EQU  8   // Write accesses at end (kernel!)
+	 OM_RDENY   EQU  16  // Others may not read at same time
+	 OM_WDENY   EQU  32  // Others may not write at same time
+	 OM_NOCHECK EQU  64  // No check by the kernel 
+	 */
+	
+	mode = 0;
+	if(omode & OM_RPERM) mode |= O_RDONLY;
+	if(omode & OM_WPERM) mode |= O_WRONLY;
+	if(omode & (OM_RPERM|OM_WPERM)) mode = O_RDWR;
+	
+	
+	fprintf(stderr, "Opening: %s\n", path);
+	refnum = open(path, mode, unix_perm);
     
 
 	/* Bevor wir irgendetwas treiben, muessen wir feststellen,	*/
@@ -4009,6 +4058,10 @@ INT32 CMacXFS::dev_read( MAC_FD *f, INT32 count, char *buf )
 	if (err)
         return(cnverr(err));
 #endif
+	if(lcount == -1)
+	{
+		fprintf(stderr, "error %d\n", errno);
+	}
 	return((INT32) lcount);
 }
 
@@ -4053,31 +4106,42 @@ INT32 CMacXFS::dev_stat(MAC_FD *f, void *unsel, UINT16 rwflag, INT32 apcode)
 	return(0L);
 }
 
-
+#endif
 INT32 CMacXFS::dev_seek(MAC_FD *f, INT32 pos, UINT16 mode)
 {
 	OSErr err;
 	short macmode;
 	long lpos;
+	off_t npos;
+
+	lpos = 0;
 
 	switch(mode)
 	{
-		case 0:   macmode = 1;break;
-		case 1:   macmode = 3;break;
-		case 2:   macmode = 2;break;
+		case 0:   macmode = SEEK_SET;break;
+		case 1:   macmode = SEEK_CUR;break;
+		case 2:   macmode = SEEK_END;break;
 		default:  return(EINVFN);
 	}
 	lpos = (long) pos;
+#if 0 
+
 	err = SetFPos(f->refnum, macmode, lpos);
 	if (err)
 		return(cnverr(err));
 	err = GetFPos(f->refnum, &lpos);
 	if (err)
 		return(cnverr(err));
-	return(lpos);
+#endif
+	npos = lseek(f->refnum, lpos, macmode);
+	if(-1 == npos)
+	{
+//		return cnverr(errno);
+	}
+	return(npos);
 }
 
-
+#if 0
 INT32 CMacXFS::dev_datime(MAC_FD *f, UINT16 d[2], UINT16 rwflag)
 {
 	OSErr err;
@@ -5018,6 +5082,7 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 			break;
 		}
 #endif
+
 		case 4:
 		{
 			struct devseekparm
@@ -5121,6 +5186,7 @@ INT32 CMacXFS::XFSDevFunctions(UINT32 param, unsigned char *AdrOffset68k)
 		}
 #endif
 		default:
+			fprintf(stderr,"Invalid Function: %d\n", fncode);
 			doserr = EINVFN;
 			break;
 	}

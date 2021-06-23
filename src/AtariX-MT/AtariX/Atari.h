@@ -701,7 +701,8 @@ typedef UINT32 (*PPCCallback)(UINT32 params, unsigned char *AdrOffset68k);
 
 typedef struct
 {
-	UINT8			*baseAddr;		/* pointer to pixels */
+	UINT32			baseAddr32;
+//	UINT8			*baseAddr;		/* pointer to pixels */
 	UINT16			rowBytes;		/* offset to next line */
 //	Rect			bounds;			/* encloses bitmap */
 	UINT16 bounds_top;				/* oberste Zeile */
@@ -718,7 +719,8 @@ typedef struct
 	UINT16			cmpCount;		/* # components in pixel */
 	UINT16			cmpSize;		/* # bits per component */
 	UINT32			planeBytes;		/* offset to next plane */
-	UINT8           *pmTable;		/* color map for this pixMap (definiert CtabHandle), in fact of type CTabHandle */
+	UINT32			pmTable32;
+//	UINT8           *pmTable;		/* color map for this pixMap (definiert CtabHandle), in fact of type CTabHandle */
 	UINT32			pmReserved;		/* for future use. MUST BE 0 */
 } MXVDI_PIXMAP;
 
@@ -915,6 +917,7 @@ enum
 };
 
 typedef UINT32 _AtariThnkPtr;
+#undef AtariThunk
 #define AtariThunk(x) _AtariThnkPtr x
 
 struct MacXSysHdr

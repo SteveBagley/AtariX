@@ -1157,7 +1157,7 @@ void m68k_execute(void)
 
 		/* Record previous program counter */
 		REG_PPC = REG_PC;
-        fprintf(stderr, "PC = %08x\n", REG_PC);
+ //       fprintf(stderr, "PC = %08x\n", REG_PC);
 
 		/* Read an instruction and call its handler */
 		REG_IR = m68ki_read_imm_16();

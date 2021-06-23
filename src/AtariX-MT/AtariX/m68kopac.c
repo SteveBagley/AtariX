@@ -3,7 +3,7 @@
 #if defined(USE_MUSASHI_68K_EMU)
 
 #include "m68kcpu.h"
-
+void _DumpAtariMem(const char *filename);
 /* ======================================================================== */
 /* ========================= INSTRUCTION HANDLERS ========================= */
 /* ======================================================================== */
@@ -12,6 +12,7 @@
 void m68k_op_1010(void)
 {
 	m68ki_exception_1010();
+	_DumpAtariMem("/Users/steve/Desktop/MAGIC.RAM");
 }
 
 
